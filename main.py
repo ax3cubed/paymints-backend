@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+
 import uvicorn
 import os
 from dotenv import load_dotenv
@@ -38,6 +40,7 @@ app = FastAPI(
     title="Paymint API",
     description="Payment processing API with invoicing, payroll, and blockchain integration",
     version="1.0.0",
+    swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}},
 )
 
 # CORS middleware
@@ -49,16 +52,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Startup and shutdown events
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting up Paymint API")
     await init_db()
 
+
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("Shutting down Paymint API")
     await close_db()
+
 
 # Exception handler
 @app.exception_handler(HTTPException)
@@ -67,6 +73,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         status_code=exc.status_code,
         content={"detail": exc.detail},
     )
+
 
 # Include routers
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -79,15 +86,18 @@ app.mount("/dist", StaticFiles(directory="dist"), name="dist")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/uploads2", StaticFiles(directory="uploads2"), name="uploads2")
 
+
 # Root endpoint
 @app.get("/", tags=["Root"])
 async def root():
     return {"message": "Welcome to Paymint API"}
 
+
 # Health check endpoint
 @app.get("/health", tags=["Health"])
 async def health_check():
     return {"status": "healthy"}
+
 
 if __name__ == "__main__":
     uvicorn.run(
