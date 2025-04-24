@@ -1,0 +1,9 @@
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - '@sap/hana-client'
+  - better-sqlite3
+  - esbuild
+  - libpq
+  - oracledb
+  - protobufjs
+  - sqlite3
