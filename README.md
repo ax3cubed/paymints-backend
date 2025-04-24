@@ -1,196 +1,117 @@
-# EVLINK Backend API
+# PAYMINTS Backend API
 
-The EVLINK Backend API is a robust TypeScript-based server application that powers the EVLINK Payment Management System. This API handles user authentication, transactions, service purchases, and administrative functions.
+A robust, high-performance backend system for handling secure payments, built with modern TypeScript, Fastify, and TypeORM. Designed to be extensible, testable, and production-ready.
 
-## Tech Stack
+---
 
-- **Node.js** - JavaScript runtime
-- **TypeScript** - Type-safe JavaScript
-- **Fastify** - High-performance web framework
-- **TypeORM** - ORM for database interactions
-- **PostgreSQL/MySQL** - Database
-- **Class Validator** - Input validation
-- **JWT** - Authentication
+## 🚀 Overview
 
-## Features
+The **PAYMINTS Backend** provides a scalable REST API with first-class support for authentication, multiple database engines, API documentation, and comprehensive logging and testing. It’s engineered to work across different environments (dev, test, prod) with ease.
 
-- **Authentication** - Secure user login, registration, and token management
-- **User Management** - User accounts, profiles, and permissions
-- **Transaction Processing** - Handles all financial transactions
-- **Service Integrations**:
-  - Airtime purchase for all major networks
-  - Data plan purchases
-  - Cable TV subscription payments
-  - Electricity bill payments
-  - Exam fee payments
-- **Admin Features** - User management, pricing configuration, system settings
-- **Wallet System** - Balance management and transaction history
+---
 
-## Project Structure
+## 🔥 Features
 
-```
-src/
-├── controllers/       # Request handlers
-├── entities/          # TypeORM entities
-├── middlewares/       # Custom middleware functions
-├── migrations/        # Database migrations
-├── routes/            # API route definitions
-├── services/          # Business logic
-├── types/             # TypeScript type definitions
-├── utils/             # Utility functions
-├── validators/        # Request validation schemas
-├── index.ts           # Application entry point
-└── database.ts        # Database configuration
-```
+- ⚡ **Fastify-powered** for blazing performance and low overhead.
+- 🔐 **Secure JWT authentication** with support for refresh tokens.
+- 🛢️ **Multi-DB support**: SQLite, PostgreSQL, MySQL, MSSQL, Oracle, MongoDB.
+- 📜 **Swagger Documentation** out of the box.
+- 🧪 **Vitest test suite** for confidence in your codebase.
+- 🌍 **CORS configuration** for safe cross-origin communication.
+- 📦 **TS-first development** using modern tooling (TSX, TSUP).
+- 🔧 **Environment-specific configurations** via `.env` files.
+- 📋 **Structured logging** with Pino.
 
-## Key Entities
+---
 
-- **User** - User accounts and authentication
-- **Transaction** - Financial transaction records
-- **Airtime** - Airtime purchase configurations
-- **DataPlan** - Data plan packages
-- **CablePlan** - Cable TV subscription packages
-- **Exam** - Examination fee configurations
-- **PricingConfig** - System-wide pricing configuration
-
-## Getting Started
+## 📦 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- PostgreSQL or MySQL database
-- Git
+- [Node.js](https://nodejs.org/) (LTS recommended)
+- [PNPM](https://pnpm.io/) (v8+)
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/evlink-backend-api.git
-cd evlink-backend-api
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your database configuration and API keys
-
-# Run database migrations
-npm run migration:run
-
-# Seed the database with initial data
-npm run seed
-
-# Start the development server
-npm run dev
+git clone https://github.com/your-username/paymints-backend.git
+cd paymints-backend
+pnpm install
 ```
 
-### Environment Variables
+## 🛠️ Usage
+## 🧑‍💻 Development
 
-Create a .env file with the following variables:
+```bash
+pnpm dev
 
-```
-# Database
-DB_TYPE=postgres
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=yourpassword
-DB_DATABASE=evlink
-
-# Server
-PORT=3001
-NODE_ENV=development
-
-# Authentication
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=1d
-
-# Third-party API keys
-PAYMENT_API_KEY=your-payment-api-key
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/refresh` - Refresh authentication token
-- `GET /api/auth/me` - Get current user info
-
-### Users
-- `GET /api/users` - Get all users (admin only)
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/:id` - Update user
-- `DELETE /api/users/:id` - Delete user
-
-### Airtime
-- `GET /api/airtime/pricing` - Get airtime pricing
-- `POST /api/airtime/purchase` - Purchase airtime
-- `POST /api/airtime/validate-phone` - Validate phone number
-
-### Data Plans
-- `GET /api/data/plans` - Get data plans
-- `GET /api/data/plans/:id` - Get data plan by ID
-- `POST /api/data/purchase` - Purchase data plan
-
-### Cable Plans
-- `GET /api/cable/plans` - Get cable plans
-- `GET /api/cable/plans/:id` - Get cable plan by ID
-- `POST /api/cable/purchase` - Purchase cable subscription
-- `POST /api/cable/validate-smartcard` - Validate smartcard
-
-### Exam Fees
-- `GET /api/exam/types` - Get exam types
-- `POST /api/exam/purchase` - Pay exam fee
-
-### Admin
-- `GET /api/admin/dashboard` - Get admin dashboard data
-- `GET /api/admin/pricing` - Get pricing configurations
-- `PUT /api/admin/pricing` - Update pricing configurations
-- `GET /api/admin/users` - Get all users
-- `POST /api/admin/sync/data-plans` - Sync data plans
-- `POST /api/admin/sync/cable-plans` - Sync cable plans
+# Paymints Backend
 
 ## Development
-
-### Database Migrations
-
 ```bash
-# Generate a new migration
-npm run migration:generate -- -n MigrationName
+pnpm dev
+```
+Runs the dev server with hot reload via TSX and detailed debug logs.
 
-# Run migrations
-npm run migration:run
+## Production
+```bash
+pnpm build
+pnpm start
+```
+Compiles TypeScript and launches the server using the compiled JS output.
 
-# Revert last migration
-npm run migration:revert
+## 🧪 Testing
+```bash
+pnpm test
+```
+Runs the unit test suite using Vitest.
+
+## ⚙️ Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| PORT | Server port | 3000 (prod), 3002 (dev) |
+| HOST | Host address | 0.0.0.0 |
+| NODE_ENV | Node environment | development |
+| API_PREFIX | Prefix for all routes | /api |
+| JWT_SECRET | Secret for JWT signing | Set per environment |
+| DB_TYPE | Database driver type | better-sqlite3 |
+| DB_NAME | Database name | :memory: (dev), production.db |
+| CORS_ORIGIN | Allowed CORS origins | * (dev), specific domain (prod) |
+| LOG_LEVEL | Logging verbosity | debug (dev), info (prod) |
+
+### Environment Files
+- .env.development
+- .env.test
+- .env.production
+
+## 🗂️ Folder Structure
+```
+paymints-backend/
+├── src/               # App source
+│   ├── controllers/   # Route handlers
+│   ├── services/      # Business logic
+│   ├── db/            # Database config and models
+│   └── index.ts       # Entry point
+├── dist/              # Compiled JS files
+├── .env.*             # Environment configs
+├── package.json       # Project manifest
+└── tsconfig.json      # TS configuration
 ```
 
-### Seeding the Database
+## 📜 Available Scripts
 
-```bash
-# Run seed script
-npm run seed
-```
+| Command | Description |
+|---------|-------------|
+| pnpm dev | Run development server with hot reload |
+| pnpm build | Build the project using tsup |
+| pnpm start | Start production server |
+| pnpm clean | Remove compiled output |
+| pnpm lint | Run Biome linter |
+| pnpm lint:fix | Auto-fix lint issues |
+| pnpm format | Format codebase using Biome |
+| pnpm test | Run tests using Vitest |
 
-### Testing
-
-```bash
-# Run tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-### Building for Production
-
-```bash
-# Build the project
-npm run build
-
-# Start production server
-npm run start:prod
-```
+## 🔐 License
+Proprietary – All rights reserved.
 
