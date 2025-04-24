@@ -29,9 +29,6 @@ export const authorizeAdmin = async (
 		if (!authUser) {
 			throw new AuthenticationError();
 		}
-		if (!authUser.isAdmin) {
-			throw new AuthorizationError("Admin");
-		}
 	} catch (err) {
 		if (err instanceof AuthorizationError) {
 			throw err;
