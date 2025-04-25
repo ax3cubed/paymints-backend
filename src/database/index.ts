@@ -3,16 +3,14 @@ import { User } from "../entities/User";
 import config from "../config";
 import { logger } from "../core/logger";
 
-
 export const AppDataSource = new DataSource({
 	type: config.database.type as any,
 	database: config.database.database,
+	connectString: config.database.url,
 	url: config.database.url,
 	dropSchema:
 		config.app.environment === "development" && config.database.dropSchema,
-	entities: [
-		User
-	],
+	entities: [User],
 	synchronize: config.database.synchronize,
 	logging: config.database.logging,
 });
