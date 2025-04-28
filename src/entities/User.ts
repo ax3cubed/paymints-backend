@@ -1,6 +1,10 @@
 import {
 	Entity,
 	Column,
+	PrimaryGeneratedColumn,
+	OneToMany,
+	CreateDateColumn,
+	UpdateDateColumn,
 } from "typeorm";
 import {
 	IsEmail,
@@ -8,79 +12,61 @@ import {
 	MinLength,
 	IsOptional,
 	IsBoolean,
-	IsDecimal,
 	IsString,
-	Length,
+	IsIn,
 } from "class-validator";
+import { Beneficiary } from "./Beneficiary";
 import { DecoratedEntity } from "./decorated.entity";
+import { Payroll } from "./Payroll";
 
 
 @Entity()
-export class User extends DecoratedEntity {
-	@Column({ unique: true, length: 255, type: "varchar" })
+export class User extends DecoratedEntity{
+
+	@Column({ length: 255, nullable: true, type: "varchar" })
+	@IsOptional()
+	@IsString()
+	name!: string;
+
+	@Column({ length: 255, nullable: true,  type: "varchar"  })
 	@IsEmail({}, { message: "Invalid email format" })
-	@IsNotEmpty({ message: "Email is required" })
 	email!: string;
 
-	@Column({ unique: true, length: 100, type: "varchar" })
-	@IsNotEmpty({ message: "Username is required" })
+	@Column({ length: 100, unique: true,  type: "varchar"  })
+	@IsNotEmpty()
 	@MinLength(3, { message: "Username must be at least 3 characters" })
 	username!: string;
 
-	@Column({ length: 255, type: "varchar" })
-	@IsNotEmpty({ message: "Password is required" })
-	password!: string; // Hashed password
-
-	@Column({ nullable: true, length: 255, type: "varchar" })
+	@Column({ length: 255, nullable: true, type: "varchar" })
 	@IsOptional()
-	fullName!: string;
+	image!: string;
 
-
-	@Column({ nullable: true, length: 500, type: "varchar" })
-	@IsOptional()
-	address!: string;
-
-	@Column({ default: false, type: "boolean" })
-	@IsBoolean()
-	emailVerified!: boolean;
-
-
-
-	@Column({ default: "", length: 500, type: "varchar" })
+	@Column({ length: 255, unique: true, type: "varchar"  })
+	@IsNotEmpty()
 	@IsString()
-	profileImage!: string;
+	address!: string; // Web3 wallet address
 
+	@Column({ default: "0",  type: "varchar" })
+	@IsString()
+	status!: string;
 
+	@Column({ default: false,  type: "boolean" })
+	@IsBoolean()
+	isAdmin!: boolean;
 
-
-
-	@Column({ nullable: true, length: 100, type: "varchar" })
+	@Column({ nullable: true,  type: "varchar" })
 	@IsOptional()
 	@IsString()
-	refererUsername!: string;
+	twitterId!: string;
 
-	@Column({ default: true, type: "boolean" })
-	@IsBoolean()
-	accountsVerified!: boolean;
+	@Column({ nullable: true,  type: "varchar" })
+	@IsOptional()
+	@IsString()
+	website!: string;
 
-	@Column({ default: true, type: "boolean" })
-	@IsBoolean()
-	allowPushNotification!: boolean;
+	@OneToMany(() => Beneficiary, (b) => b.user, { cascade: true, eager: true })
+	beneficiaries!: Beneficiary[];
 
-	@Column({ default: false, type: "boolean" })
-	@IsBoolean()
-	allowEmailNotification!: boolean;
-
-	@Column({ default: false, type: "boolean" })
-	@IsBoolean()
-	allowBiometricsLogin!: boolean;
-
-
-
-	@Column({ default: false, type: "datetime" })
-	lastLogin?: Date;
-	@Column({ default: "active", length: 50, type: "varchar" })
-	status!: "active" | "inactive" | "suspended";
-
-
+	@OneToMany(() => Payroll, (b) => b.createdBy, { cascade: true, eager: true })
+	payroll!: Payroll[];
 }

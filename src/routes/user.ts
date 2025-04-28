@@ -18,15 +18,8 @@ export async function userRoutes(fastify: FastifyInstance) {
   )
 
   // Update password
-  fastify.put("/password", { schema: updatePasswordSchema }, (request, reply) =>
-    userController.updatePassword(request, reply),
+  fastify.post("/add/beneficiary", { schema: updatePasswordSchema }, (request, reply) =>
+    userController.addBeneficiary(request, reply),
   )
-
-
-
-
-
-  // Update notification settings
-  fastify.put("/notification-settings", (request, reply) => userController.updateNotificationSettings(request, reply))
 }
 

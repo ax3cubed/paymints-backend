@@ -28,6 +28,18 @@ export abstract class BaseController {
   }
 
   /**
+   * Send a success response
+   */
+  protected sendError(
+    reply: FastifyReply,
+    message?: string,
+    statusCode = 404,
+    requestId?: string,
+  ): FastifyReply {
+    return ResponseHandler.success(reply, [], message, statusCode, { requestId })
+  }
+
+  /**
    * Send a paginated response
    */
   protected sendPaginated<T>(

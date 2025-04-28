@@ -9,11 +9,18 @@ import {
 	Entity,
 	UpdateDateColumn,
 	PrimaryGeneratedColumn,
+	BeforeInsert,
+	PrimaryColumn,
+	ObjectIdColumn,
 } from "typeorm";
 
-@Entity()
+// @Entity()
 export abstract class DecoratedEntity extends BaseEntity {
 	@PrimaryGeneratedColumn()
+	@ObjectIdColumn()
+	_id!: string;
+
+	@Column({ type: 'int', length: 255, nullable: false })
 	id!: number;
 
 	@CreateDateColumn()
@@ -28,4 +35,15 @@ export abstract class DecoratedEntity extends BaseEntity {
 	@Column({ default: false, type: "boolean" })
 	@IsOptional()
 	softDeleted?: boolean;
+
+	@BeforeInsert()
+	generateId() {
+		this.id = Number(this.generate10DigitId());
+	}
+
+	private generate10DigitId(): string {
+		const min = 1_000_000_000; // 10-digit minimum
+		const max = 9_999_999_999; // 10-digit maximum
+		return Math.floor(Math.random() * (max - min + 1)) + min + '';
+	}
 }
