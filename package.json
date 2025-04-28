@@ -20,6 +20,8 @@
     "@fastify/swagger-ui": "latest",
     "@google-cloud/spanner": "latest",
     "@sap/hana-client": "latest",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2",
     "@vercel/node": "^5.1.14",
     "axios": "latest",
     "bcryptjs": "^3.0.2",

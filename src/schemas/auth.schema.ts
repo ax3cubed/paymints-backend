@@ -6,13 +6,9 @@ export const registerSchema = {
   description: "Creates a new user account and returns a JWT token",
   body: {
     type: "object",
-    required: ["email", "username", "password"],
+    required: ["address"],
     properties: {
-      email: { type: "string", format: "email" },
-      username: { type: "string", minLength: 3 },
-      password: { type: "string", minLength: 6 },
-      fullName: { type: "string" },
-      
+      address: { type: "string" }
     },
   },
   response: {
@@ -29,10 +25,16 @@ export const registerSchema = {
               type: "object",
               properties: {
                 id: { type: "number" },
+                name: { type: "string" },
                 email: { type: "string" },
                 username: { type: "string" },
-                fullName: { type: "string" },
-               
+                Image: { type: "string" },
+                address: { type: "string" },
+                status: { type: "string" },
+                isAdmin: { type: "boolean" },
+                twitterId: { type: "string" },
+                website: { type: "string" },
+
               },
             },
             token: { type: "string" },
@@ -70,10 +72,9 @@ export const loginSchema = {
   description: "Authenticates a user and returns a JWT token",
   body: {
     type: "object",
-    required: ["emailOrUsername", "password"],
+    required: ["addressOrUsername"],
     properties: {
-      emailOrUsername: { type: "string" },
-      password: { type: "string" },
+      addressOrUsername: { type: "string" }
     },
   },
   response: {
@@ -90,11 +91,15 @@ export const loginSchema = {
               type: "object",
               properties: {
                 id: { type: "number" },
+                name: { type: "string" },
                 email: { type: "string" },
                 username: { type: "string" },
-                fullName: { type: "string" },
-               
-               
+                Image: { type: "string" },
+                address: { type: "string" },
+                status: { type: "string" },
+                isAdmin: { type: "boolean" },
+                twitterId: { type: "string" },
+                website: { type: "string" },
               },
             },
             token: { type: "string" },
@@ -125,145 +130,161 @@ export const loginSchema = {
   },
 }
 
-export const forgotPasswordSchema = {
-  tags: ["Auth"],
-  summary: "Forgot password",
-  description: "Sends a password reset link to the user's email",
-  body: {
-    type: "object",
-    required: ["email"],
-    properties: {
-      email: { type: "string", format: "email" },
-    },
-  },
-  response: {
-    200: {
-      description: "Reset link sent",
-      type: "object",
-      properties: {
-        success: { type: "boolean" },
-        message: { type: "string" },
-        meta: {
-          type: "object",
-          properties: {
-            timestamp: { type: "string" },
-          },
-        },
-      },
-    },
-  },
-}
-
-export const resetPasswordSchema = {
-  tags: ["Auth"],
-  summary: "Reset password",
-  description: "Resets the user's password using a token",
-  body: {
-    type: "object",
-    required: ["token", "password"],
-    properties: {
-      token: { type: "string" },
-      password: { type: "string", minLength: 6 },
-    },
-  },
-  response: {
-    200: {
-      description: "Password reset successful",
-      type: "object",
-      properties: {
-        success: { type: "boolean" },
-        message: { type: "string" },
-        meta: {
-          type: "object",
-          properties: {
-            timestamp: { type: "string" },
-          },
-        },
-      },
-    },
-    400: {
-      description: "Invalid token",
-      type: "object",
-      properties: {
-        success: { type: "boolean" },
-        message: { type: "string" },
-        meta: {
-          type: "object",
-          properties: {
-            timestamp: { type: "string" },
-          },
-        },
-      },
-    },
-  },
-}
-
 export const getMeSchema = {
   tags: ["Auth"],
   summary: "Get current user",
-  description: "Returns the authenticated user's details",
-  // security: [{ bearerAuth: [] }],
+  description: "Returns the authenticated user's details, including beneficiaries, token balances, and user profile",
   response: {
     200: {
       description: "User details",
       type: "object",
+      required: ["success", "message", "data", "meta"],
       properties: {
         success: { type: "boolean" },
         message: { type: "string" },
         data: {
           type: "object",
+          required: ["beneficiaries", "tokens", "user"],
           properties: {
-            transactions: {
+            beneficiaries: {
               type: "array",
               items: {
                 type: "object",
                 properties: {
-                  id: { type: "number" },
-                  amount: { type: "number" },
-                  type: { type: "string" },
-                  status: { type: "string" },
-                  createdAt: { type: "string" },
-                },
+                  id: { type: "number", description: "Beneficiary ID" },
+                  name: { type: "string", description: "Beneficiary name" },
+                  email: { type: "string", format: "email", description: "Beneficiary email" },
+                  walletAddress: {
+                    type: "string",
+                    pattern: "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                    description: "Solana wallet address (base58-encoded)"
+                  }
+                }
               },
+              description: "Array of beneficiaries (empty if none)"
+            },
+            tokens: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["symbol", "mintAddress", "balance"],
+                properties: {
+                  symbol: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 10,
+                    pattern: "^[A-Za-z0-9*]+$",
+                    description: "Token symbol, e.g., 'USDC'"
+                  },
+                  mintAddress: {
+                    type: "string",
+                    pattern: "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                    description: "Solana mint address (base58-encoded)"
+                  },
+                  balance: {
+                    type: "number",
+                    minimum: 0,
+                    description: "Token balance as a floating-point number, e.g., 100.5"
+                  },
+                  imageUrl: {
+                    type: "string"
+                  },
+                  associatedTokenAddress: {
+                    type: "string",
+                    pattern: "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                    nullable: true,
+                    description: "Solana associated token address (base58-encoded) or null if unavailable"
+                  }
+                }
+              },
+              description: "Array of token accounts (empty if none)"
             },
             user: {
               type: "object",
               properties: {
-                id: { type: "number" },
-                email: { type: "string" },
-                username: { type: "string" },
-                fullName: { type: "string" },
-                emailVerified: { type: "boolean" },
-                profileImage: { type: "string" },
-                address: { type: "string" },
-                
-                 
-              },
-            },
-          },
+                id: { type: "number", description: "User ID" },
+                name: { type: "string", description: "User full name" },
+                email: { type: "string", format: "email", description: "User email" },
+                username: { type: "string", description: "User username" },
+                image: { type: "string", nullable: true, description: "User profile image URL" },
+                address: {
+                  type: "string",
+                  pattern: "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                  description: "Solana wallet address (base58-encoded)"
+                },
+                status: {
+                  type: "string",
+                  enum: ["active", "inactive", "pending"],
+                  description: "User account status"
+                },
+                isAdmin: { type: "boolean", description: "Whether the user is an admin" },
+                twitterId: { type: "string", nullable: true, description: "User Twitter ID" },
+                website: { type: "string", nullable: true, description: "User website URL" }
+              }
+            }
+          }
         },
         meta: {
           type: "object",
+          required: ["timestamp"],
           properties: {
-            timestamp: { type: "string" },
-          },
-        },
-      },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+              description: "ISO 8601 date-time string, e.g., '2025-04-28T12:34:56Z'"
+            }
+          }
+        }
+      }
     },
     401: {
       description: "Unauthorized",
       type: "object",
+      required: ["success", "message", "meta"],
       properties: {
         success: { type: "boolean" },
         message: { type: "string" },
         meta: {
           type: "object",
+          required: ["timestamp"],
           properties: {
-            timestamp: { type: "string" },
-          },
-        },
-      },
+            timestamp: { type: "string", format: "date-time" }
+          }
+        }
+      }
     },
-  },
-}
+    400: {
+      description: "Bad Request",
+      type: "object",
+      required: ["success", "message", "meta"],
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        meta: {
+          type: "object",
+          required: ["timestamp"],
+          properties: {
+            timestamp: { type: "string", format: "date-time" }
+          }
+        }
+      }
+    },
+    500: {
+      description: "Internal Server Error",
+      type: "object",
+      required: ["success", "message", "meta"],
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        meta: {
+          type: "object",
+          required: ["timestamp"],
+          properties: {
+            timestamp: { type: "string", format: "date-time" }
+          }
+        }
+      }
+    }
+  }
+};
 

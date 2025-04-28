@@ -2,7 +2,7 @@
 
 export interface JwtUser {
   id: number
-  email: string
+  address: string
   username: string
   iat?: number
   exp?: number

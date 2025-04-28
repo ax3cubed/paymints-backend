@@ -18,6 +18,7 @@ import {
 	swaggerUiOptions,
 } from "./config/swagger";
 import { authRoutes } from "./routes/auth";
+import { invoiceRoutes } from "./routes/invoice";
 
 // Create Fastify instance
 const server: FastifyInstance = Fastify({
@@ -102,6 +103,7 @@ server.setErrorHandler((error, request, reply) => {
 // Register routes
 server.register(authRoutes, { prefix: `${config.app.apiPrefix}/auth` });
 server.register(userRoutes, { prefix: `${config.app.apiPrefix}/user` });
+server.register(invoiceRoutes, { prefix: `${config.app.apiPrefix}/invoice` })
 
 
 // Add this after registering routes but before starting the server
@@ -153,7 +155,7 @@ const start = async () => {
 			host: config.app.host,
 		});
 		if(config.app.environment !== "production") {
-      logger.info(config);
+    //   logger.info(config);
     }
 		logger.info(
 			{
