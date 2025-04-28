@@ -14,8 +14,8 @@ export const AppDataSource = new DataSource({
 	type: config.database.type as any,
 	database: config.database.database,
 	url: config.database.url,
-	// dropSchema:
-	// 	config.app.environment === "development" && config.database.dropSchema,
+	dropSchema:
+		config.app.environment === "development" && config.database.dropSchema,
 	entities: [
 		User,
 		Beneficiary,
