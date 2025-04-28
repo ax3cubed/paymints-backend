@@ -8,8 +8,8 @@ const envFile =
 	process.env.NODE_ENV === "production"
 		? ".env.production"
 		: process.env.NODE_ENV === "test"
-			? ".env.test"
-			: ".env.development";
+		? ".env.test"
+		: ".env.development";
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
@@ -22,6 +22,9 @@ interface Config {
 		environment: string;
 		apiPrefix: string;
 		primaryAddress: string;
+		protocol: string;
+		url: string;
+		urlWithPort: string;
 	};
 	auth: {
 		jwtSecret: string;
@@ -38,7 +41,6 @@ interface Config {
 	};
 	api: {
 		baseUrl: string;
-		 
 	};
 	cors: {
 		origin: string | string[];
@@ -51,22 +53,28 @@ interface Config {
 
 	primaryTokens: {
 		tokens: {
-			symbol: string,
-			mintAddress: string,
-			imageUrl: string
+			symbol: string;
+			mintAddress: string;
+			imageUrl: string;
 		}[];
-	}
+	};
 }
 
 // Create the configuration object
 export const config: Config = {
 	app: {
 		name: get("APP_NAME").default("Payment API").asString(),
-		port: get("PORT").default("3000").asPortNumber(),
-		host: get("HOST").default("0.0.0.0").asString(),
+		port: get("SERVER_PORT").default("3000").asPortNumber(),
+		host: get("SERVER_HOST").default("0.0.0.0").asString(),
 		environment: get("NODE_ENV").default("development").asString(),
 		apiPrefix: get("API_PREFIX").default("/api").asString(),
 		primaryAddress: get("PRIMARYWALLETADDRESS").default("").asString(),
+		protocol: get("SERVER_PROTOCOL").default("http").asString(),
+		url: get("SERVER_URL").default("http://localhost").asString(),
+		urlWithPort: get("SERVER_URL_WITH_PORT")
+			.default("http://localhost:3000")
+			.asString(),
+		// urlWithPort: `${get("SERVER_URL").default("http://localhost").asString()}:${get("SERVER_PORT").default("3000").asPortNumber()}`,
 	},
 	auth: {
 		jwtSecret: get("JWT_SECRET").default("supersecretkey").asString(),
@@ -78,19 +86,15 @@ export const config: Config = {
 	database: {
 		type: get("DB_TYPE").default("mongodb").asString(),
 		database: get("DB_NAME").default(":memory:").asString(),
-		url: get("URL").default("").asString(),
 		synchronize: get("DB_SYNCHRONIZE").default("true").asBool(),
 		logging: get("DB_LOGGING").default("true").asBool(),
 		dropSchema: get("DB_DROP_SCHEMA").default("false").asBool(),
-		url: get("DATABASE_URL")
-			.default("sqlite://:memory:")
-			.asString(),
+		url: get("DATABASE_URL").default("sqlite://:memory:").asString(),
 	},
 	api: {
 		baseUrl: get("NEXT_PUBLIC_BASE_URL")
 			.default("https://thirdpartyapi.com")
 			.asString(),
-		 
 	},
 	cors: {
 		origin: get("CORS_ORIGIN").default("*").asString(),
@@ -105,27 +109,28 @@ export const config: Config = {
 	primaryTokens: {
 		tokens: [
 			{
-				symbol: 'USDC',
-				mintAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-				imageUrl: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png'
+				symbol: "USDC",
+				mintAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+				imageUrl: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
 			},
 			{
-				symbol: 'USDT',
-				mintAddress: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-				imageUrl: 'https://cryptologos.cc/logos/tether-usdt-logo.png'
+				symbol: "USDT",
+				mintAddress: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+				imageUrl: "https://cryptologos.cc/logos/tether-usdt-logo.png",
 			},
 			{
-				symbol: 'USD*',
-				mintAddress: 'BenJy1n3WTx9mTjEvy63e8Q1j4RqUc6E4VBMz3ir4Wo6',
-				imageUrl: 'https://statics.solscan.io/cdn/imgs/s60?ref=68747470733a2f2f697066732e66696c65626173652e696f2f697066732f516d5041333735546558756e6a6145513561674c42375251576745705161553539544438526d554a786f31374563'
+				symbol: "USD*",
+				mintAddress: "BenJy1n3WTx9mTjEvy63e8Q1j4RqUc6E4VBMz3ir4Wo6",
+				imageUrl:
+					"https://statics.solscan.io/cdn/imgs/s60?ref=68747470733a2f2f697066732e66696c65626173652e696f2f697066732f516d5041333735546558756e6a6145513561674c42375251576745705161553539544438526d554a786f31374563",
 			},
 			{
-				symbol: 'PYUSD',
-				mintAddress: '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo',
-				imageUrl: 'https://cryptologos.cc/logos/paypal-usd-pyusd-logo.png'
-			}
-		]
-	}
+				symbol: "PYUSD",
+				mintAddress: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+				imageUrl: "https://cryptologos.cc/logos/paypal-usd-pyusd-logo.png",
+			},
+		],
+	},
 };
 
 // Validate critical configuration

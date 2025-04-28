@@ -19,6 +19,7 @@ import {
 } from "./config/swagger";
 import { authRoutes } from "./routes/auth";
 import { invoiceRoutes } from "./routes/invoice";
+import { url } from "inspector";
 
 // Create Fastify instance
 const server: FastifyInstance = Fastify({
@@ -153,6 +154,7 @@ const start = async () => {
 		await server.listen({
 			port: config.app.port,
 			host: config.app.host,
+			
 		});
 		if(config.app.environment !== "production") {
     //   logger.info(config);
@@ -161,6 +163,7 @@ const start = async () => {
 			{
 				address: server.server.address(),
 				environment: config.app.environment,
+                swaggerUrl: `http://${config.app.host}:${config.app.port}/documentation`,
 			},
 			`Server started successfully`
 		);
