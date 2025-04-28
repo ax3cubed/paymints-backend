@@ -9,10 +9,10 @@ import { Services } from "@/entities/Services";
 import { Recipient } from "@/entities/Recipient";
 import { Payroll } from "@/entities/Payroll";
 
-
 export const AppDataSource = new DataSource({
 	type: config.database.type as any,
 	database: config.database.database,
+	connectString: config.database.url,
 	url: config.database.url,
 	dropSchema:
 		config.app.environment === "development" && config.database.dropSchema,

@@ -38,13 +38,7 @@ interface Config {
 	};
 	api: {
 		baseUrl: string;
-		token: string;
-		monifyBaseUrl: string;
-		monifyApiKey: string;
-		monifySecretKey: string;
-		monifyWalletAccountNumber: string;
-		monifyContractCode: string;
-		paymentRedirectUrl: string;
+		 
 	};
 	cors: {
 		origin: string | string[];
@@ -88,24 +82,15 @@ export const config: Config = {
 		synchronize: get("DB_SYNCHRONIZE").default("true").asBool(),
 		logging: get("DB_LOGGING").default("true").asBool(),
 		dropSchema: get("DB_DROP_SCHEMA").default("false").asBool(),
+		url: get("DATABASE_URL")
+			.default("sqlite://:memory:")
+			.asString(),
 	},
 	api: {
-		baseUrl: get("NEXT_PUBLIC_DATASTATION_BASE_URL")
-			.default("https://datastation.com.ng/api")
+		baseUrl: get("NEXT_PUBLIC_BASE_URL")
+			.default("https://thirdpartyapi.com")
 			.asString(),
-		token: get("NEXT_PUBLIC_DATASTATION_TOKEN").default("").asString(),
-		monifyBaseUrl: get("MONIFY_BASE_URL")
-			.default("https://api.monnify.com")
-			.asString(),
-		monifyApiKey: get("MONIFY_API_KEY").default("").asString(),
-		monifySecretKey: get("MONIFY_SECRET_KEY").default("").asString(),
-		monifyWalletAccountNumber: get("MONIFY_WALLET_ACCOUNT_NUMBER")
-			.default("")
-			.asString(),
-		monifyContractCode: get("MONIFY_CONTRACT_CODE").default("").asString(),
-		paymentRedirectUrl: get("PAYMENT_REDIRECT_URL")
-			.default("https://example.com/redirect")
-			.asString(),
+		 
 	},
 	cors: {
 		origin: get("CORS_ORIGIN").default("*").asString(),
