@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 import path from "path";
 import { logger } from "../core/logger";
 import { get } from "env-var";
+import { createDefaultRpcTransport, createSolanaRpc, createSolanaRpcApi, Rpc, RpcApi, RpcMainnet, RpcTransport } from '@solana/kit';
+
 
 // Load environment variables based on NODE_ENV
 const envFile =
@@ -12,6 +14,10 @@ const envFile =
 		: ".env.development";
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+const rpc2 = createSolanaRpcApi({defaultCommitment: 'confirmed'})
+const rpc = get("RPC_URL").default("https://api.mainnet-beta.solana.com").asString();
+const transport = createDefaultRpcTransport({url: rpc})
+
 
 // Define the configuration interface
 interface Config {
@@ -52,6 +58,9 @@ interface Config {
 	};
 
 	primaryTokens: {
+		newRpc: object,
+		transport: RpcTransport,
+		rpc_url: string;
 		tokens: {
 			symbol: string;
 			mintAddress: string;
@@ -107,6 +116,9 @@ export const config: Config = {
 		level: get("LOG_LEVEL").default("info").asString(),
 	},
 	primaryTokens: {
+		newRpc: rpc2,
+		transport: transport,
+		rpc_url: get("RPC_URL").default("https://api.mainnet-beta.solana.com").asString(),
 		tokens: [
 			{
 				symbol: "USDC",

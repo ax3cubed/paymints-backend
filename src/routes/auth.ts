@@ -4,12 +4,15 @@ import {
   registerSchema,
   loginSchema,
   getMeSchema,
+  initializeUserSchema,
 } from "../schemas/auth.schema"
 
 export async function authRoutes(fastify: FastifyInstance) {
   const authController = new AuthController(fastify)
 
   // Register a new user
+  fastify.post("/connectuser", { schema: initializeUserSchema }, (request, reply) => authController.initializeUser(request, reply))
+  
   fastify.post("/register", { schema: registerSchema }, (request, reply) => authController.register(request, reply))
 
   // Login user

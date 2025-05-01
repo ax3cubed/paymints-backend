@@ -8,6 +8,7 @@ import { DiscountCodes } from "@/entities/Discount";
 import { Services } from "@/entities/Services";
 import { Recipient } from "@/entities/Recipient";
 import { Payroll } from "@/entities/Payroll";
+import { Payment } from "@/entities/Payment";
 
 export const AppDataSource = new DataSource({
 	type: config.database.type as any,
@@ -23,7 +24,8 @@ export const AppDataSource = new DataSource({
 		DiscountCodes,
 		Services,
 		Recipient,
-		Payroll
+		Payroll,
+		Payment
 	],
 	synchronize: config.database.synchronize,
 	logging: config.database.logging,
