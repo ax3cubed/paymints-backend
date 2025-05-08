@@ -9,9 +9,11 @@ import { logger } from "../core/logger";
 import type { JwtUser } from "../types/auth.types";
 import { FastifyRequest } from "fastify";
 import { User } from "../entities/User";
+import { Services } from "@/entities/Services";
 
 export class InvoiceService {
   private invoiceRepository = AppDataSource.getRepository(Invoice);
+  private servicesRepository = AppDataSource.getRepository(Services);
   private userRepository = AppDataSource.getRepository(User);
 
   /**
@@ -54,7 +56,8 @@ export class InvoiceService {
   async createInvoice(invoiceData: Partial<Invoice>): Promise<Invoice> {
     try {
       // Validate required fields
-      if (!invoiceData.invoiceNo || !invoiceData.invoiceType || !invoiceData.invoiceTitle || !invoiceData.invoiceMintAddress) {
+      if (!invoiceData.invoiceNo || !invoiceData.invoiceType || !invoiceData.invoiceTitle 
+        || !invoiceData.invoiceMintAddress || !invoiceData.services) {
         throw new ValidationError("Required invoice fields are missing");
       }
 
@@ -84,6 +87,23 @@ export class InvoiceService {
       });
 
       await this.invoiceRepository.save(invoice);
+
+      invoiceData.services.map(async (items) => {
+        try {
+          const newService = this.servicesRepository.create({
+            title: items.title,
+            description: items.description,
+            quantity: items.quantity,
+            image: items.image,
+            unitPrice: items.unitPrice,
+            invoice: invoice
+          })
+
+          await this.servicesRepository.save(newService);
+        } catch (error) {
+          logger.error({ err: error }, "Service Creation Failed");
+        }
+      })
       logger.info({ invoiceId: invoice.id }, "Invoice created successfully");
 
       return invoice;

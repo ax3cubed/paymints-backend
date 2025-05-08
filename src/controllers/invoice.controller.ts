@@ -3,6 +3,7 @@ import { InvoiceService } from "../services/invoice.service";
 import { BaseController } from "./base.controller";
 import { z } from "zod";
 import { InvoiceType, InvoiceStatus, InvoiceVisibility } from "../entities/Invoice";
+import { SmartContractService } from "@/services/smartcontract.service";
 
 // Validation schemas (unchanged from previous implementation)
 const createInvoiceSchema = z.object({
@@ -44,7 +45,7 @@ const createInvoiceSchema = z.object({
     discount: z.number().optional(),
     taxRate: z.number().optional(),
     taxAmount: z.number().optional(),
-    totalAmount: z.number().optional(),
+    totalAmount: z.number(),
 });
 
 const updateInvoiceSchema = z.object({
@@ -68,7 +69,7 @@ const updateInvoiceSchema = z.object({
         ])
         .optional(),
     invoiceCategory: z.string().optional(),
-    invoiceMintAddress: z.string().optional(),
+    invoiceMintAddress: z.string(),
     clientName: z.string().optional(),
     clientWallet: z.string().optional(),
     clientEmail: z.string().email().optional(),
@@ -87,14 +88,17 @@ const updateInvoiceSchema = z.object({
     taxRate: z.number().optional(),
     taxAmount: z.number().optional(),
     totalAmount: z.number().optional(),
+    invoiceTxHash: z.string(),
 });
 
 export class InvoiceController extends BaseController {
     private invoiceService: InvoiceService;
+    private smartContractService: SmartContractService;
 
     constructor() {
         super();
         this.invoiceService = new InvoiceService();
+        this.smartContractService = new SmartContractService();
     }
 
     /**
@@ -104,10 +108,19 @@ export class InvoiceController extends BaseController {
         try {
             const invoiceData = createInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
+            const invoiceHash = await this.smartContractService.createInvoice(
+                user.address,
+                invoiceData.invoiceNo,
+                invoiceData.totalAmount?.toString(),
+                invoiceData.invoiceDescription || '',
+                invoiceData.dueDate || '',
+                invoiceData.invoiceMintAddress
+            )
 
             const invoice = await this.invoiceService.createInvoice({
                 ...invoiceData,
                 createdBy: user,
+                invoiceTxHash: invoiceHash.transaction
             });
 
             return this.sendSuccess(
@@ -142,10 +155,17 @@ export class InvoiceController extends BaseController {
                 return this.sendError(reply, "Invoice not found", 404);
             }
 
+            const invoicePayersFromSC = await this.smartContractService.getInvoicePayments(invoice.invoiceTxHash)
+
+            const response = {
+                ...invoice,
+                invoicePays: invoicePayersFromSC
+            }
+
             return this.sendSuccess(
                 reply,
                 {
-                    invoice,
+                    response,
                     success: true,
                     meta: { timestamp: new Date().toISOString() },
                 },
@@ -190,6 +210,10 @@ export class InvoiceController extends BaseController {
             const { id } = (request.params as { id: string });
             const invoiceData = updateInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
+
+            if(invoiceData.invoiceStatus === InvoiceStatus.COMPLETED){
+                const invoiceHash = await this.smartContractService.closeInvoice(user.address,invoiceData.invoiceTxHash,invoiceData.invoiceMintAddress)
+            }
 
             const invoice = await this.invoiceService.updateInvoice(id, user.id, invoiceData);
 

@@ -14,11 +14,13 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
     "@fastify/cors": "latest",
     "@fastify/jwt": "latest",
     "@fastify/swagger": "latest",
     "@fastify/swagger-ui": "latest",
     "@google-cloud/spanner": "latest",
+    "@project-serum/anchor": "^0.26.0",
     "@sap/hana-client": "latest",
     "@solana/kit": "^2.1.0",
     "@solana/spl-token": "^0.4.13",

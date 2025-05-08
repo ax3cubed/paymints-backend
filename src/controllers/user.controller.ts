@@ -62,6 +62,7 @@ export class UserController extends BaseController {
               email: b.email,
               walletAddress: b.walletAddress,
             })),
+            creditScoreHistory: [],
           },
         },
         "User profile retrieved successfully"

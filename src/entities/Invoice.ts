@@ -119,6 +119,9 @@ export class Invoice extends DecoratedEntity {
 	@Column({ type: "boolean", default: true })
 	QRcodeEnabled!: boolean;
 
+	@Column({ type: "varchar", default: true })
+	invoiceTxHash!: string;
+
 	@OneToMany(() => Services, (item) => item.invoice, {
 		cascade: true,
 		eager: true,
