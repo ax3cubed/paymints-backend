@@ -95,6 +95,104 @@ export const createNewPaymentSchema = {
     },
 };
 
+
+export const createNewInvoicePaymentSchema = {
+    tags: ["Payment"],
+    summary: "Create a new payment",
+    description: "Creates a new payment record for a transaction",
+    body: {
+        type: "object",
+        required: ["sender", "receiver", "totalAmount", "mintAddress"],
+        properties: {
+            paymentDescription: { type: "string" },
+            receiver: { type: "string" },
+            sender: { type: "string" },
+            totalAmount: { type: "string" },
+            serviceType: {
+                type: "string",
+                enum: ["standard", "invoice", "payroll", "DAO", "credit"],
+            },
+            serviceHash: {
+                type: "string"
+            },
+            paymentDate: { type: "string", format: "date-time" },
+            paymentStatus: {
+                type: "string",
+                enum: ["pending", "completed", "failed", "cancelled"],
+            },
+            mintAddress: { type: "string" },
+        },
+    },
+    response: {
+        201: {
+            description: "Payment created successfully",
+            type: "object",
+            properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                data: {
+                    type: "object",
+                    properties: {
+                        data: {
+                            type: "object",
+                            properties: {
+                                id: { type: "string" },
+                                paymentHash: { type: "string" },
+                                // receiver: { type: "string" },
+                                // sender: { type: "string" },
+                                // totalAmount: { type: "string" },
+                                // paymentDate: { type: "string" },
+                                // paymentStatus: { type: "string" },
+                                // serviceType: { type: "string" },
+                                // paymentDescription: { type: "string" },
+                                // paymentSignature: { type: "string" },
+                                // mintAddress: { type: "string" },
+                                // createdAt: { type: "string", format: "date-time" },
+                                // updatedAt: { type: "string", format: "date-time" },
+                            },
+                        },
+                    },
+                },
+                meta: {
+                    type: "object",
+                    properties: {
+                        timestamp: { type: "string", format: "date-time" },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Validation error",
+            type: "object",
+            properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                errors: { type: "array", items: { type: "string" } },
+                meta: {
+                    type: "object",
+                    properties: {
+                        timestamp: { type: "string" },
+                    },
+                },
+            },
+        },
+        401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                meta: {
+                    type: "object",
+                    properties: {
+                        timestamp: { type: "string" },
+                    },
+                },
+            },
+        },
+    },
+};
+
 export const createConcludedPaymentSchema = {
     tags: ["Payment"],
     summary: "Create a new payment",
