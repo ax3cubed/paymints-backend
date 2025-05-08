@@ -25,6 +25,7 @@ import { paymentRoutes } from "./routes/payment";
 import { payrollRoutes } from "./routes/payroll";
 import { txnRoutes } from "./routes/transaction";
 
+
 // Create Fastify instance
 const server: FastifyInstance = Fastify({
 	logger: false, // We use our custom logger
@@ -59,7 +60,8 @@ server.addHook("onRequest", async (request, reply) => {
 		if (
 			request.url &&
 			(request.url.startsWith(`${config.app.apiPrefix}/auth`) ||
-				request.url === `${config.app.apiPrefix}/health` ||
+				request.url === `${config.app.apiPrefix}/health` || 
+				request.url.startsWith(`${config.app.apiPrefix}/txn`) ||
 				isSwaggerRoute(request.url))
 		) {
 			return;
@@ -113,7 +115,6 @@ server.register(txnRoutes, { prefix: `${config.app.apiPrefix}/txn` })
 server.register(paymentRoutes, { prefix: `${config.app.apiPrefix}/payments` })
 server.register(payrollRoutes, { prefix: `${config.app.apiPrefix}/payroll` })
 
-
 // Add this after registering routes but before starting the server
 // Health check route with Swagger documentation
 server.get(
@@ -161,6 +162,7 @@ const start = async () => {
 		await server.listen({
 			port: config.app.port,
 			host: config.app.host,
+			
 		});
 		if(config.app.environment !== "production") {
     //   logger.info(config);
@@ -169,6 +171,7 @@ const start = async () => {
 			{
 				address: server.server.address(),
 				environment: config.app.environment,
+                swaggerUrl: `http://${config.app.host}:${config.app.port}/documentation`,
 			},
 			`Server started successfully`
 		);

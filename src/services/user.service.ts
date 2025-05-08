@@ -13,6 +13,7 @@ import { FastifyRequest } from "fastify";
 import { generateUsername } from "@/config/username";
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import config from "@/config";
 
 
 
@@ -81,7 +82,7 @@ export class UserService {
 	async getTokenAccounts(
 		walletAddress: string,
 		primaryTokens: { tokens: TokenInfo[] },
-		rpcUrl: string = 'https://api.mainnet-beta.solana.com'
+		rpcUrl: string = config.primaryTokens.rpc_url,
 	): Promise<{ tokens: TokenAccount[] }> {
 		try {
 			// Initialize Solana connection
@@ -199,6 +200,47 @@ export class UserService {
 			throw error;
 		}
 	}
+
+
+
+	async initializeUser(userData: Partial<User>): Promise<User> {
+		// Check if user already exists
+		const existingUser = await this.userRepository.findOne({
+			where: { address: userData.address },
+		});
+
+		if (existingUser) {
+			const user = await this.userRepository.findOne({
+				where: { address: userData.address },
+			});
+	
+			if (!user) {
+				throw new NotFoundError("User", userData.address);
+			}
+	
+			return user;
+		}
+
+		const username = generateUsername()
+		userData.username = username;
+		userData.name = username;
+
+
+		try {
+			const user = this.userRepository.create(userData);
+			console.log(user)
+
+			await this.userRepository.save(user);
+			logger.info({ userId: user.id }, "User created successfully");
+
+			return user;
+		} catch (error) {
+			logger.error({ err: error }, "User Creation Failed: ");
+			throw error;
+		}
+	}
+
+	
 
 	/**
 	 * Update user profile

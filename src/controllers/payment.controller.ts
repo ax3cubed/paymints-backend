@@ -43,7 +43,6 @@ export const createPaymentSchema = z.object({
     mintAddress: z.string().optional(),
 });
 
-
 export const createNewPaymentSchema = z.object({
     paymentHash: z.string(),
     paymentDescription: z.string().optional(),
@@ -88,11 +87,13 @@ export class PaymentController extends BaseController {
     private userService: UserService;
     private smartContractService: SmartContractService;
 
+
     constructor(private fastify: any) {
         super();
         this.paymentService = new PaymentService();
         this.userService = new UserService();
         this.smartContractService = new SmartContractService();
+
     }
 
 

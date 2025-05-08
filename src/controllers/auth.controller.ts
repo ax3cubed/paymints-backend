@@ -68,6 +68,47 @@ export class AuthController extends BaseController {
 		}
 	}
 
+
+	async initializeUser(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			const { address } =
+				registerSchema.parse(request.body);
+
+			const user = await this.userService.initializeUser({
+				address
+			});
+
+			// Generate JWT token
+			const token = this.fastify.jwt.sign({
+				id: user.id,
+				address: user.address,
+				username: user.username,
+			});
+
+			return this.sendSuccess(
+				reply,
+				{
+					user: {
+						id: user.id,
+						email: user.email,
+						address: user.address,
+						username: user.username,
+						name: user.name,
+						status: user.status,
+						image: user.image,
+						twitterId: user.twitterId,
+						website: user.website,
+					},
+					token,
+				},
+				"User registered successfully",
+				201
+			);
+		} catch (error) {
+			return this.handleError(error as Error, reply, request.requestId);
+		}
+	}
+
 	/**
 	 * Login user
 	 */

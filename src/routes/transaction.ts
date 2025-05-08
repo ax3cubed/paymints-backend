@@ -9,3 +9,4 @@ export async function txnRoutes(fastify: FastifyInstance) {
   fastify.get("/transactions", { schema: getTransactionSchema }, (request, reply) => transactionController.getTransaction(request, reply))
 
 }
+

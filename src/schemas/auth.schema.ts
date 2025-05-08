@@ -66,6 +66,75 @@ export const registerSchema = {
   },
 }
 
+
+export const initializeUserSchema = {
+  tags: ["Auth"],
+  summary: "Initialize user",
+  description: "Creates a new user account or auth user returns a JWT token",
+  body: {
+    type: "object",
+    required: ["address"],
+    properties: {
+      address: { type: "string" }
+    },
+  },
+  response: {
+    201: {
+      description: "Successful registration",
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        data: {
+          type: "object",
+          properties: {
+            user: {
+              type: "object",
+              properties: {
+                id: { type: "number" },
+                name: { type: "string" },
+                email: { type: "string" },
+                username: { type: "string" },
+                Image: { type: "string" },
+                address: { type: "string" },
+                status: { type: "string" },
+                isAdmin: { type: "boolean" },
+                twitterId: { type: "string" },
+                website: { type: "string" },
+
+              },
+            },
+            token: { type: "string" },
+          },
+        },
+        meta: {
+          type: "object",
+          properties: {
+            timestamp: { type: "string" },
+          },
+        },
+      },
+    },
+    400: {
+      description: "Validation error",
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        errors: { type: "array" },
+        meta: {
+          type: "object",
+          properties: {
+            timestamp: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+}
+
+
+
 export const loginSchema = {
   tags: ["Auth"],
   summary: "Login user",

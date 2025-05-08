@@ -8,3 +8,4 @@ export function generatePaymentHash(): string {
     const hash = crypto.randomBytes(32).toString("hex"); // 64 hex characters
     return `pmt_${hash}`;
 }
+

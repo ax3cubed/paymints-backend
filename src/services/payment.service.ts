@@ -77,8 +77,6 @@ export class PaymentService {
         }
 
     }
-
-    /* Payment to be initiated and triggered by the smart contract*/
     async saveNewPayment(paymentData: Partial<Payment>): Promise<Payment> {
         try {
             const newPaymentHash = generatePaymentHash();
