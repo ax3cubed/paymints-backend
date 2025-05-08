@@ -1,5 +1,5 @@
 import { PaymentController } from "@/controllers/payment.controller";
-import { createConcludedPaymentSchema, createNewPaymentSchema, getPaymentForAddressSchema, getPaymentFromPaymentHashSchema, updatePaymentSchema } from "@/schemas/payment.schema";
+import { createConcludedPaymentSchema, createNewInvoicePaymentSchema, createNewPaymentSchema, getPaymentForAddressSchema, getPaymentFromPaymentHashSchema, updatePaymentSchema } from "@/schemas/payment.schema";
 
 import type { FastifyInstance } from "fastify";
 
@@ -16,7 +16,13 @@ export async function paymentRoutes(fastify: FastifyInstance) {
 
     fastify.post(
         "/new",
-        { schema: createNewPaymentSchema },
+        { schema: createNewInvoicePaymentSchema },
+        (request, reply) => paymentController.createNewPayment(request, reply)
+    );
+
+    fastify.post(
+        "/invoice/new",
+        { schema: createNewInvoicePaymentSchema },
         (request, reply) => paymentController.createNewPayment(request, reply)
     );
 
