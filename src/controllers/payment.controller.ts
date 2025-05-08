@@ -70,6 +70,34 @@ export const createNewPaymentSchema = z.object({
     mintAddress: z.string(),
 });
 
+export const createNewInvoicePaymentSchema = z.object({
+    paymentHash: z.string(),
+    paymentDescription: z.string().optional(),
+    receiver: z.string(),
+    sender: z.string(),
+    totalAmount: z.string(),
+    serviceType: z
+        .enum([
+            ServiceType.STANDARD,
+            ServiceType.CREDIT,
+            ServiceType.DAO,
+            ServiceType.INVOICE,
+            ServiceType.PAYROLL
+        ])
+        .optional(),
+    serviceHash: z.string(),
+    paymentDate: z.string().optional(),
+    paymentStatus: z
+        .enum([
+            PaymentStatus.FAILED,
+            PaymentStatus.PENDING,
+            PaymentStatus.SUCCESS,
+            PaymentStatus.CANCELLED
+        ])
+        .optional(),
+    mintAddress: z.string(),
+});
+
 export const updatePaymentSchema = z.object({
     paymentHash: z.string(),
     paymentStatus: z
@@ -127,13 +155,63 @@ export class PaymentController extends BaseController {
 
     async createNewPayment(request: FastifyRequest, reply: FastifyReply) {
         try {
-            const paymentData = createNewPaymentSchema.parse(request.body);
+            const paymentData = createNewInvoicePaymentSchema.parse(request.body);
+            const user = await this.userService.getAuthenticatedUser(request);
+            var txDetails;
+
+            if(paymentData.serviceType !== ServiceType.INVOICE){
+                const transactionDetails = await this.smartContractService.payInvoice(
+                    paymentData.sender,
+                    paymentData.serviceHash,
+                    paymentData.totalAmount,
+                    paymentData.mintAddress
+                )
+
+                txDetails = transactionDetails;
+            }else{
+                const transactionDetails = await this.smartContractService.payInvoice(
+                    paymentData.sender,
+                    paymentData.serviceHash,
+                    paymentData.totalAmount,
+                    paymentData.mintAddress
+                )
+
+                txDetails = transactionDetails;
+            }
+
+
+            const payment = await this.paymentService.saveNewPayment({
+                ...paymentData,
+                paymentSignature: txDetails.transaction,
+                createdBy: user,
+            });
+
+            return this.sendSuccess(
+                reply,
+                {
+                    data: { id: payment.id, paymentHash: payment.paymentHash },
+                    success: true,
+                    meta: { timestamp: new Date().toISOString() },
+                },
+                "Payment created successfully"
+            );
+        } catch (error) {
+            return this.handleError(error as Error, reply, request.requestId);
+        }
+    }
+
+
+    async createNewInvoicePayment(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const paymentData = createNewInvoicePaymentSchema.parse(request.body);
             const user = await this.userService.getAuthenticatedUser(request);
 
-            const transactionDetails = await this.smartContractService.sendToken(paymentData.sender,
-                paymentData.receiver,
-                paymentData.mintAddress,
-                paymentData.totalAmount)
+            const transactionDetails = await this.smartContractService.payInvoice(
+                paymentData.sender,
+                paymentData.serviceHash,
+                paymentData.totalAmount,
+                paymentData.mintAddress
+            )
 
             const payment = await this.paymentService.saveNewPayment({
                 ...paymentData,
