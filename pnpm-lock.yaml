@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@coral-xyz/anchor':
+        specifier: ^0.31.1
+        version: 0.31.1(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)
       '@fastify/cors':
         specifier: latest
         version: 11.0.1
@@ -395,11 +398,27 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@coral-xyz/anchor-errors@0.31.1':
+    resolution: {integrity: sha512-NhNEku4F3zzUSBtrYz84FzYWm48+9OvmT1Hhnwr6GnPQry2dsEqH/ti/7ASjjpoFTWRnPXrjAIT1qM6Isop+LQ==}
+    engines: {node: '>=10'}
+
+  '@coral-xyz/anchor@0.31.1':
+    resolution: {integrity: sha512-QUqpoEK+gi2S6nlYc2atgT2r41TT3caWr/cPUEL8n8Md9437trZ68STknq897b82p5mW0XrTBNOzRbmIRJtfsA==}
+    engines: {node: '>=17'}
+
+
   '@coral-xyz/borsh@0.26.0':
     resolution: {integrity: sha512-uCZ0xus0CszQPHYfWAqKS5swS1UxvePu83oOF+TWpUkedsNlg6p2p4azxZNSSqwXb9uXMFgxhuMBX9r3Xoi0vQ==}
     engines: {node: '>=10'}
     peerDependencies:
       '@solana/web3.js': ^1.68.0
+
+  '@coral-xyz/borsh@0.31.1':
+    resolution: {integrity: sha512-9N8AU9F0ubriKfNE3g1WF0/4dtlGXoBN/hd1PvbNBamBNwRgHxH4P+o3Zt7rSEloW1HUs6LfZEchlx9fW7POYw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@solana/web3.js': ^1.69.0
+
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -1236,7 +1255,7 @@ packages:
   '@smithy/util-utf8@4.0.0':
     resolution: {integrity: sha512-b+zebfKCfRdgNJDknHCob3O7FpeYQN6ZG6YLExMcasDHsCXlsXCEuiPZeLnJLpwa5dvPetGlnGCiMHuLwGvFow==}
     engines: {node: '>=18.0.0'}
-
+ 
   '@solana-program/address-lookup-table@0.7.0':
     resolution: {integrity: sha512-dzCeIO5LtiK3bIg0AwO+TPeGURjSG2BKt0c4FRx7105AgLy7uzTktpUzUj6NXAK9SzbirI8HyvHUvw1uvL8O9A==}
     peerDependencies:
@@ -4850,11 +4869,42 @@ snapshots:
   '@biomejs/cli-win32-x64@1.8.3':
     optional: true
 
+  '@coral-xyz/anchor-errors@0.31.1': {}
+
+  '@coral-xyz/anchor@0.31.1(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@coral-xyz/anchor-errors': 0.31.1
+      '@coral-xyz/borsh': 0.31.1(@solana/web3.js@1.98.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10))
+      '@noble/hashes': 1.8.0
+      '@solana/web3.js': 1.98.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)
+      bn.js: 5.2.2
+      bs58: 4.0.1
+      buffer-layout: 1.2.2
+      camelcase: 6.3.0
+      cross-fetch: 3.2.0(encoding@0.1.13)
+      eventemitter3: 4.0.7
+      pako: 2.1.0
+      superstruct: 0.15.5
+      toml: 3.0.0
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - typescript
+      - utf-8-validate
+
+
   '@coral-xyz/borsh@0.26.0(@solana/web3.js@1.98.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10))':
     dependencies:
       '@solana/web3.js': 1.98.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)
       bn.js: 5.2.2
       buffer-layout: 1.2.2
+
+  '@coral-xyz/borsh@0.31.1(@solana/web3.js@1.98.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10))':
+    dependencies:
+      '@solana/web3.js': 1.98.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)
+      bn.js: 5.2.2
+      buffer-layout: 1.2.2
+
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -5678,6 +5728,7 @@ snapshots:
     dependencies:
       '@smithy/util-buffer-from': 4.0.0
       tslib: 2.8.1
+
 
   '@solana-program/address-lookup-table@0.7.0(@solana/kit@2.1.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)))':
     dependencies:

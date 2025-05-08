@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { logger } from "../core/logger";
 import { get } from "env-var";
-import { createDefaultRpcTransport, createSolanaRpc, createSolanaRpcApi, Rpc, RpcApi, RpcMainnet, RpcTransport } from '@solana/kit';
+import { createDefaultRpcTransport, createSolanaRpcApi, Rpc, RpcApi, RpcTransport, SolanaRpcApi } from "@solana/kit";
 
 
 // Load environment variables based on NODE_ENV
@@ -14,9 +14,17 @@ const envFile =
 		: ".env.development";
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+const rpcs = [
+	"https://api.mainnet-beta.solana.com",
+	"https://api.devnet.solana.com",
+	"https://api.localnet.solana.com"
+]
+const cluster = get("CLUSTER").default("1").asString();
 const rpc2 = createSolanaRpcApi({defaultCommitment: 'confirmed'})
-const rpc = get("RPC_URL").default("https://api.mainnet-beta.solana.com").asString();
+const rpc = get(rpcs[parseInt(cluster)]).default("https://api.devnet.solana.com").asString();
 const transport = createDefaultRpcTransport({url: rpc})
+
+
 
 
 // Define the configuration interface
@@ -58,9 +66,10 @@ interface Config {
 	};
 
 	primaryTokens: {
-		newRpc: object,
+		newRpc: RpcApi<RpcTransport>,
 		transport: RpcTransport,
-		rpc_url: string;
+		rpc_url: string,
+
 		tokens: {
 			symbol: string;
 			mintAddress: string;
@@ -95,6 +104,8 @@ export const config: Config = {
 	database: {
 		type: get("DB_TYPE").default("mongodb").asString(),
 		database: get("DB_NAME").default(":memory:").asString(),
+		// url: get("URL").default("").asString(),
+
 		synchronize: get("DB_SYNCHRONIZE").default("true").asBool(),
 		logging: get("DB_LOGGING").default("true").asBool(),
 		dropSchema: get("DB_DROP_SCHEMA").default("false").asBool(),
@@ -118,7 +129,8 @@ export const config: Config = {
 	primaryTokens: {
 		newRpc: rpc2,
 		transport: transport,
-		rpc_url: get("RPC_URL").default("https://api.mainnet-beta.solana.com").asString(),
+		rpc_url: get(rpcs[parseInt(cluster)]).default("https://api.devnet.solana.com").asString(),
+
 		tokens: [
 			{
 				symbol: "USDC",

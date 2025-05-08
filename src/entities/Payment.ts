@@ -18,6 +18,7 @@ export enum PaymentStatus {
 }
 
 export enum ServiceType {
+    STANDARD = "standard",
     INVOICE = "invoice",
     PAYROLL = "payroll",
     DAO = "DAO",
@@ -48,7 +49,7 @@ export class Payment extends DecoratedEntity {
     @IsOptional()
     totalAmount?: string;
 
-    @Column({ type: "enum", enum: ServiceType })
+    @Column({ type: "enum", enum: ServiceType, default: ServiceType.STANDARD })
     serviceType?: ServiceType;
 
     @Column({ length: 255, nullable: true, type: "varchar" })

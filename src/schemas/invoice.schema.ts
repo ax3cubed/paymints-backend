@@ -91,6 +91,16 @@ const idParamsSchema = z.object({
     id: z.string(),
 });
 
+const createResponseSchema = {
+    type: "object",
+    required: ["invoiceNo", "invoiceTxHash"],
+    properties: {
+      invoiceNo: { type: "string" },
+      invoiceTxHash: { type: "string" }
+    }
+  };
+  
+
 const invoiceResponseSchema = {
     type: "object",
     properties: {
@@ -145,6 +155,14 @@ const invoiceResponseSchema = {
         totalAmount: { type: "number" },
         createdAt: { type: "string" },
         updatedAt: { type: "string" },
+        invoicePays: {
+            type: "array",
+            properties: {
+                payer: {type: "string"},
+                amount: {type: "string"},
+                timestamp: {type: "string"},
+            }
+        }
     },
 };
 
@@ -211,7 +229,7 @@ export const createInvoiceSchema = {
                 data: {
                     type: "object",
                     properties: {
-                        invoice: invoiceResponseSchema,
+                        invoice: createResponseSchema,
                     },
                 },
                 meta: {
@@ -377,7 +395,7 @@ export const updateInvoiceSchema = {
         properties: {
             id: { type: "string", description: "Invoice ID" },
         },
-        required: ["id"],
+        required: ["id", "invoiceMintAddress", "invoiceTxHash"],
     },
     body: {
         type: "object",
@@ -390,6 +408,7 @@ export const updateInvoiceSchema = {
             invoiceTitle: { type: "string" },
             invoiceImage: { type: "string" },
             invoiceDescription: { type: "string" },
+            invoiceTxHash: { type: "string" },
             invoiceStatus: {
                 type: "string",
                 enum: ["0", "1", "2"],

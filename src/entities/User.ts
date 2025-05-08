@@ -69,4 +69,7 @@ export class User extends DecoratedEntity{
 
 	@OneToMany(() => Payroll, (b) => b.createdBy, { cascade: true, eager: true })
 	payroll!: Payroll[];
+
+	@OneToMany(() => Payroll, (b) => b.createdBy, { cascade: true, eager: true })
+	creditScoreHistory!: Payroll[];
 }

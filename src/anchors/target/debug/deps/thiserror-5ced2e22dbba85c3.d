@@ -1,0 +1,11 @@
+/mnt/c/Users/User/Documents/Github/paymints-backend/src/anchor/target/debug/deps/thiserror-5ced2e22dbba85c3.d: /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/lib.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/aserror.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/display.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/provide.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/var.rs
+
+/mnt/c/Users/User/Documents/Github/paymints-backend/src/anchor/target/debug/deps/libthiserror-5ced2e22dbba85c3.rlib: /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/lib.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/aserror.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/display.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/provide.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/var.rs
+
+/mnt/c/Users/User/Documents/Github/paymints-backend/src/anchor/target/debug/deps/libthiserror-5ced2e22dbba85c3.rmeta: /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/lib.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/aserror.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/display.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/provide.rs /home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/var.rs
+
+/home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/lib.rs:
+/home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/aserror.rs:
+/home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/display.rs:
+/home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/provide.rs:
+/home/phil/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.12/src/var.rs:

@@ -4,6 +4,7 @@ import { z } from "zod";
 import config from "@/config";
 import { TransactionService } from "@/services/transaction.service";
 
+
 const getTransactionSchema = z.object({
     address: z.string(),
 });
@@ -38,3 +39,4 @@ export class TransactionController extends BaseController {
         }
     }
 }
+

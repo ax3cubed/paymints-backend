@@ -213,7 +213,6 @@ export const getMeSchema = {
         message: { type: "string" },
         data: {
           type: "object",
-          required: ["beneficiaries", "tokens", "user"],
           properties: {
             beneficiaries: {
               type: "array",
@@ -289,6 +288,51 @@ export const getMeSchema = {
                 isAdmin: { type: "boolean", description: "Whether the user is an admin" },
                 twitterId: { type: "string", nullable: true, description: "User Twitter ID" },
                 website: { type: "string", nullable: true, description: "User website URL" }
+              }
+            },
+            creditScoreHistory: {
+              type: "array",
+              description: "Array of historical credit score evaluations for the user (can be empty)",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "number", description: "Credit score entry ID" },
+                  name: { type: "string", description: "Name or label for the score snapshot" },
+                  createdAt: { type: "string", format: "date-time", description: "Timestamp of the credit score evaluation" },
+            
+                  walletAgeDays: { type: "integer", description: "Number of days the wallet has existed" },
+                  kycVerified: { type: "boolean", description: "Whether the user has completed KYC verification" },
+                  countryRiskRating: { type: "string", nullable: true, description: "Geopolitical or regional risk label" },
+            
+                  txVolume30d: { type: "number", format: "float", description: "Total transaction volume in the last 30 days" },
+                  txFrequency30d: { type: "integer", description: "Number of transactions in the last 30 days" },
+                  protocolInteractionsCount: { type: "integer", description: "Count of different Web3 protocols interacted with" },
+                  daoVotesCast: { type: "integer", description: "Number of DAO votes cast by the user" },
+            
+                  invoicesPaidReceivedRatio: { type: "number", format: "float", description: "Ratio of invoices paid vs received" },
+                  avgInvoiceAmount: { type: "number", format: "float", description: "Average invoice amount handled" },
+                  invoiceOnTimeRate: { type: "number", format: "float", description: "Proportion of invoices paid on time" },
+                  invoiceFactoringUsed: { type: "boolean", description: "Whether the user has used invoice factoring" },
+            
+                  reputationScore: { type: "number", format: "float", description: "Aggregated DAO reputation score" },
+                  linkedSocialsCount: { type: "integer", description: "Number of linked social accounts (GitHub, Twitter, etc.)" },
+                  peerReviewsScore: { type: "number", format: "float", description: "Average peer review rating" },
+            
+                  loanRepaymentRate: { type: "number", format: "float", description: "Rate of successful loan repayments" },
+                  loanDefaultsCount: { type: "integer", description: "Number of loan defaults" },
+                  borrowedToEarnedRatio: { type: "number", format: "float", description: "Borrowed amount vs earned funds" },
+            
+                  consistencyScore: { type: "number", format: "float", description: "Score reflecting financial behavior consistency" },
+                  riskAnomaliesDetected: { type: "boolean", description: "Flag if anomalies or risk spikes were detected" },
+                  activityCluster: { type: "string", nullable: true, description: "Behavioral cluster name (e.g., 'spender', 'builder')" },
+            
+                  finalCreditScore: { type: "number", format: "float", description: "Final calculated credit score from AI engine" },
+                  creditTier: {
+                    type: "string",
+                    enum: ["Excellent", "Good", "Fair", "Poor", "High Risk"],
+                    description: "Tier label based on the final credit score"
+                  }
+                }
               }
             }
           }

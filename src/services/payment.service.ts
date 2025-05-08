@@ -1,10 +1,3 @@
-// import {
-//   Connection,
-//   ParsedInstruction,
-//   PublicKey,
-//   SystemProgram,
-//   TransactionError
-// } from '@solana/web3.js';
 import { generatePaymentHash } from '@/config/paymenthash';
 import { NotFoundError, ValidationError } from '../core/errors';
 import { logger } from '../core/logger';
@@ -84,12 +77,38 @@ export class PaymentService {
         }
 
     }
+    async saveNewPayment(paymentData: Partial<Payment>): Promise<Payment> {
+        try {
+            const newPaymentHash = generatePaymentHash();
+            // Validate required fields
+            if (!paymentData.paymentSignature || !paymentData.totalAmount || !paymentData.sender ||
+                !paymentData.mintAddress || !paymentData.paymentStatus || !paymentData.serviceType) {
+                throw new ValidationError("Required invoice fields are missing");
+            }
 
-    /* Payment to be initiated and triggered by the smart contract*/
-    // async saveNewPayment(paymentData: Partial<Payment>): Promise<Payment> {
+            // Check if invoice number already exists
+            const existingInvoice = await this.paymentInventory.findOne({
+                where: { paymentSignature: paymentData.paymentSignature },
+            });
 
+            if (existingInvoice) {
+                throw new ValidationError("Invoice with this number already exists");
+            }
 
-    // }
+            const payment = this.paymentInventory.create({
+                ...paymentData,
+                paymentHash: newPaymentHash
+            });
+
+            await this.paymentInventory.save(payment);
+            logger.info({ paymentHash: payment.paymentHash }, "Invoice created successfully");
+
+            return payment;
+        } catch (error) {
+            logger.error({ err: error }, "Invoice Creation Failed");
+            throw error;
+        }
+    }
 
 
     async getPaymentFromPaymentHash(paymentHash: string): Promise<PaymentResponse> {

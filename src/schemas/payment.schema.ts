@@ -7,23 +7,21 @@ export const createNewPaymentSchema = {
     description: "Creates a new payment record for a transaction",
     body: {
         type: "object",
-        required: ["paymentHash"],
+        required: ["sender", "receiver", "totalAmount", "mintAddress"],
         properties: {
-            paymentHash: { type: "string" },
             paymentDescription: { type: "string" },
             receiver: { type: "string" },
             sender: { type: "string" },
             totalAmount: { type: "string" },
             serviceType: {
                 type: "string",
-                enum: ["invoice", "payroll", "DAO", "credit"],
+                enum: ["standard", "invoice", "payroll", "DAO", "credit"],
             },
             paymentDate: { type: "string", format: "date-time" },
             paymentStatus: {
                 type: "string",
                 enum: ["pending", "completed", "failed", "cancelled"],
             },
-            paymentSignature: { type: "string" },
             mintAddress: { type: "string" },
         },
     },
@@ -103,7 +101,7 @@ export const createConcludedPaymentSchema = {
     description: "Creates a new payment record for a transaction",
     body: {
         type: "object",
-        required: ["paymentHash"],
+        required: ["sender", "receiver", "totalAmount", "mintAddress", "paymentSignature"],
         properties: {
             paymentHash: { type: "string" },
             paymentDescription: { type: "string" },
@@ -112,7 +110,7 @@ export const createConcludedPaymentSchema = {
             totalAmount: { type: "string" },
             serviceType: {
                 type: "string",
-                enum: ["invoice", "payroll", "DAO", "credit"],
+                enum: ["standard", "invoice", "payroll", "DAO", "credit"],
             },
             paymentDate: { type: "string", format: "date-time" },
             paymentStatus: {

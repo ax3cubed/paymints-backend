@@ -49,13 +49,30 @@ export class PayrollService {
         return payroll;
     }
 
+
+    async getUserPayrolls(userId: number): Promise<Payroll[]> {
+        try {
+          const payrolls = await this.payrollRepository.find({
+            where: { createdBy: { id: userId } },
+            relations: ["createdBy", "recipients"],
+            order: { createdAt: "DESC" },
+          });
+    
+          return payrolls;
+        } catch (error) {
+          logger.error({ err: error }, "Failed to fetch user invoices");
+          throw error;
+        }
+      }
+
     /**
      * Create a new payroll
      */
     async createPayroll(payrollData: Partial<Payroll>): Promise<Payroll> {
         try {
             // Validate required fields
-            if (!payrollData.payrollType || !payrollData.payrollTitle || !payrollData.createdBy) {
+            if (!payrollData.payrollType || !payrollData.payrollTitle
+                || !payrollData.createdBy || !payrollData.recipients) {
                 throw new ValidationError("Required payroll fields are missing");
             }
 
@@ -65,6 +82,8 @@ export class PayrollService {
                 payrollImage: payrollData.payrollImage || "",
                 payrollDescription: payrollData.payrollDescription || "",
                 subtotal: payrollData.subtotal || 0,
+                enableVesting: payrollData.enableVesting || false,
+                vestUntil: payrollData.vestUntil || '',
                 totalAmount: payrollData.totalAmount || 0,
                 stablecoinSymbol: payrollData.stablecoinSymbol || "USDC",
                 tokenAddress: payrollData.tokenAddress || "",
@@ -75,6 +94,29 @@ export class PayrollService {
             });
 
             await this.payrollRepository.save(payroll);
+
+            payrollData.recipients.map(async (recipient) => {
+                try {
+                    const newRecipient = this.recipientRepository.create({
+                        name: recipient.name,
+                        email: recipient.email,
+                        walletAddress: recipient.walletAddress,
+                        payType: recipient.payType,
+                        grossPay: recipient.grossPay,
+                        netPay: recipient.netPay,
+                        bonuses: recipient.bonuses,
+                        deductions: recipient.deductions,
+                        paid: recipient.paid,
+                        totalAmount: recipient.totalAmount,
+                        txHash: recipient.txHash || "",
+                        payroll: payroll
+                    })
+
+                    await this.recipientRepository.save(newRecipient);
+                } catch (error) {
+                    logger.error({ err: error }, "Recipient Creation Failed");
+                }
+            })
             logger.info({ payrollId: payroll.id }, "Payroll created successfully");
 
             return payroll;
@@ -106,6 +148,8 @@ export class PayrollService {
                 "payrollImage",
                 "payrollDescription",
                 "payrollStatus",
+                "enableVesting",
+                "vestUntil",
                 "subtotal",
                 "totalAmount",
                 "payrollPeriod",

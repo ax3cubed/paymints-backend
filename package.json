@@ -14,6 +14,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
     "@fastify/cors": "latest",
     "@fastify/jwt": "latest",
     "@fastify/swagger": "latest",

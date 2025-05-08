@@ -2,10 +2,10 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 import { BaseController } from "./base.controller";
 import { z } from "zod";
 import config from "@/config";
-import { TransactionService } from "@/services/transaction.service";
 import { PaymentService } from "@/services/payment.service";
 import { UserService } from "@/services/user.service";
 import { PaymentStatus, ServiceType } from "@/entities/Payment";
+import { SmartContractService } from "@/services/smartcontract.service";
 
 const getPaymentForAddressSchema = z.object({
     walletAddress: z.string(),
@@ -23,6 +23,7 @@ export const createPaymentSchema = z.object({
     totalAmount: z.string().optional(),
     serviceType: z
         .enum([
+            ServiceType.STANDARD,
             ServiceType.CREDIT,
             ServiceType.DAO,
             ServiceType.INVOICE,
@@ -42,6 +43,33 @@ export const createPaymentSchema = z.object({
     mintAddress: z.string().optional(),
 });
 
+export const createNewPaymentSchema = z.object({
+    paymentHash: z.string(),
+    paymentDescription: z.string().optional(),
+    receiver: z.string(),
+    sender: z.string(),
+    totalAmount: z.string(),
+    serviceType: z
+        .enum([
+            ServiceType.STANDARD,
+            ServiceType.CREDIT,
+            ServiceType.DAO,
+            ServiceType.INVOICE,
+            ServiceType.PAYROLL
+        ])
+        .optional(),
+    paymentDate: z.string().optional(),
+    paymentStatus: z
+        .enum([
+            PaymentStatus.FAILED,
+            PaymentStatus.PENDING,
+            PaymentStatus.SUCCESS,
+            PaymentStatus.CANCELLED
+        ])
+        .optional(),
+    mintAddress: z.string(),
+});
+
 export const updatePaymentSchema = z.object({
     paymentHash: z.string(),
     paymentStatus: z
@@ -57,11 +85,15 @@ export const updatePaymentSchema = z.object({
 export class PaymentController extends BaseController {
     private paymentService: PaymentService;
     private userService: UserService;
+    private smartContractService: SmartContractService;
+
 
     constructor(private fastify: any) {
         super();
         this.paymentService = new PaymentService();
         this.userService = new UserService();
+        this.smartContractService = new SmartContractService();
+
     }
 
 
@@ -85,7 +117,38 @@ export class PaymentController extends BaseController {
                     success: true,
                     meta: { timestamp: new Date().toISOString() },
                 },
-                "Invoice created successfully"
+                "Payment created successfully"
+            );
+        } catch (error) {
+            return this.handleError(error as Error, reply, request.requestId);
+        }
+    }
+
+
+    async createNewPayment(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const paymentData = createNewPaymentSchema.parse(request.body);
+            const user = await this.userService.getAuthenticatedUser(request);
+
+            const transactionDetails = await this.smartContractService.sendToken(paymentData.sender,
+                paymentData.receiver,
+                paymentData.mintAddress,
+                paymentData.totalAmount)
+
+            const payment = await this.paymentService.saveNewPayment({
+                ...paymentData,
+                paymentSignature: transactionDetails.transaction,
+                createdBy: user,
+            });
+
+            return this.sendSuccess(
+                reply,
+                {
+                    data: { id: payment.id, paymentHash: payment.paymentHash },
+                    success: true,
+                    meta: { timestamp: new Date().toISOString() },
+                },
+                "Payment created successfully"
             );
         } catch (error) {
             return this.handleError(error as Error, reply, request.requestId);

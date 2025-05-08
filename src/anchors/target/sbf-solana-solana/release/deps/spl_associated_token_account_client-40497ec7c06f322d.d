@@ -1,0 +1,9 @@
+/mnt/c/Users/User/Documents/Github/paymints-backend/src/anchor/target/sbf-solana-solana/release/deps/libspl_associated_token_account_client-40497ec7c06f322d.rmeta: /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/lib.rs /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/address.rs /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/instruction.rs
+
+/mnt/c/Users/User/Documents/Github/paymints-backend/src/anchor/target/sbf-solana-solana/release/deps/libspl_associated_token_account_client-40497ec7c06f322d.rlib: /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/lib.rs /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/address.rs /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/instruction.rs
+
+/mnt/c/Users/User/Documents/Github/paymints-backend/src/anchor/target/sbf-solana-solana/release/deps/spl_associated_token_account_client-40497ec7c06f322d.d: /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/lib.rs /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/address.rs /home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/instruction.rs
+
+/home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/lib.rs:
+/home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/address.rs:
+/home/phil/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spl-associated-token-account-client-2.0.0/src/instruction.rs:
