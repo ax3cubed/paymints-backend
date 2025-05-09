@@ -489,6 +489,81 @@ export const updateInvoiceSchema = {
     },
 };
 
+
+export const activateInvoiceSchema = {
+    tags: ["Invoice"],
+    summary: "Activate invoice",
+    description: "Updates an existing invoice for the authenticated user",
+    // security: [{ bearerAuth: [] }],
+    params: {
+        type: "object",
+        properties: {
+            id: { type: "string", description: "Invoice ID" },
+        },
+        required: ["invoiceStatus", "invoiceNo"],
+    },
+    body: {
+        type: "object",
+        properties: {
+            invoiceNo: { type: "string" },
+            invoiceStatus: {
+                type: "string",
+                enum: ["0", "1", "2"],
+            }
+        },
+    },
+    response: {
+        200: {
+            description: "Invoice Activated",
+            type: "object",
+            properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                data: {
+                    type: "object",
+                    properties: {
+                        invoice: createResponseSchema,
+                    },
+                },
+                meta: {
+                    type: "object",
+                    properties: {
+                        timestamp: { type: "string" },
+                    },
+                },
+            },
+        },
+        401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                meta: {
+                    type: "object",
+                    properties: {
+                        timestamp: { type: "string" },
+                    },
+                },
+            },
+        },
+        404: {
+            description: "Invoice not found",
+            type: "object",
+            properties: {
+                success: { type: "boolean" },
+                message: { type: "string" },
+                meta: {
+                    type: "object",
+                    properties: {
+                        timestamp: { type: "string" },
+                    },
+                },
+            },
+        },
+    },
+};
+
 // Delete invoice schema
 export const deleteInvoiceSchema = {
     tags: ["Invoice"],

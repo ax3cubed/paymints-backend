@@ -4,10 +4,11 @@ import { BaseController } from "./base.controller";
 import { z } from "zod";
 import { InvoiceType, InvoiceStatus, InvoiceVisibility } from "../entities/Invoice";
 import { SmartContractService } from "@/services/smartcontract.service";
+import { generateInvoiceIdentifier } from "@/config/randomidentifier";
 
 // Validation schemas (unchanged from previous implementation)
 const createInvoiceSchema = z.object({
- 
+
     invoiceType: z.enum([
         InvoiceType.INVOICE,
         InvoiceType.DONATION,
@@ -93,6 +94,16 @@ const updateInvoiceSchema = z.object({
     invoiceTxHash: z.string(),
 });
 
+const activateInvoiceSchema = z.object({
+    invoiceNo: z.string(),
+    invoiceStatus: z
+        .enum([
+            InvoiceStatus.DRAFT,
+            InvoiceStatus.PROCESSING,
+            InvoiceStatus.COMPLETED,
+        ])
+});
+
 export class InvoiceController extends BaseController {
     private invoiceService: InvoiceService;
     private smartContractService: SmartContractService;
@@ -110,18 +121,13 @@ export class InvoiceController extends BaseController {
         try {
             const invoiceData = createInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
-            const invoiceHash = await this.smartContractService.createInvoice(
-                user.address,
-                invoiceData.totalAmount?.toString(),
-                invoiceData.invoiceDescription || '',
-                invoiceData.dueDate || '',
-                invoiceData.invoiceMintAddress
-            )
+            const invoiceId = generateInvoiceIdentifier()
+
 
             const invoice = await this.invoiceService.createInvoice({
                 ...invoiceData,
-                createdBy: user,
-                invoiceTxHash: invoiceHash.transaction
+                invoiceNo: invoiceId,
+                createdBy: user
             });
 
             return this.sendSuccess(
@@ -212,11 +218,70 @@ export class InvoiceController extends BaseController {
             const invoiceData = updateInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
 
-            if(invoiceData.invoiceStatus === InvoiceStatus.COMPLETED){
-                const invoiceHash = await this.smartContractService.closeInvoice(user.address,invoiceData.invoiceTxHash,invoiceData.invoiceMintAddress)
+            if (invoiceData.invoiceStatus === InvoiceStatus.COMPLETED) {
+                const invoiceHash = await this.smartContractService.closeInvoice(user.address, invoiceData.invoiceTxHash, invoiceData.invoiceMintAddress)
             }
 
             const invoice = await this.invoiceService.updateInvoice(id, user.id, invoiceData);
+
+            if (!invoice) {
+                return this.sendError(reply, "Invoice not found", 404);
+            }
+
+            return this.sendSuccess(
+                reply,
+                {
+                    invoice,
+                    success: true,
+                    meta: { timestamp: new Date().toISOString() },
+                },
+                "Invoice updated successfully"
+            );
+        } catch (error) {
+            return this.handleError(error as Error, reply, request.requestId);
+        }
+    }
+
+
+    async activateInvoice(
+        request: FastifyRequest,
+        reply: FastifyReply
+    ) {
+        try {
+            const invoiceData = activateInvoiceSchema.parse(request.body);
+            const user = await this.invoiceService.getAuthenticatedUser(request);
+
+            const inv = await this.invoiceService.getInvoice(invoiceData.invoiceNo, user.id);
+
+            var invoiceHas;
+
+            if (!inv) {
+                return this.sendError(reply, "Invoice not found", 404);
+            }
+
+            if (invoiceData.invoiceStatus === InvoiceStatus.COMPLETED) {
+                const invoiceHash = await this.smartContractService.closeInvoice(user.address, inv.invoiceTxHash, inv.invoiceMintAddress)
+                invoiceHas = invoiceHash;
+            }
+
+            if (invoiceData.invoiceStatus === InvoiceStatus.PROCESSING) {
+
+
+                const invoiceHash = await this.smartContractService.createInvoice(
+                    user.address,
+                    invoiceData.invoiceNo,
+                    inv.totalAmount?.toString(),
+                    inv.invoiceDescription || '',
+                    inv.dueDate || '',
+                    inv.invoiceMintAddress
+                )
+                invoiceHas = invoiceHash;
+            }
+
+            const invoice = await this.invoiceService.updateInvoice(inv._id, user.id, {
+                invoiceStatus: invoiceData.invoiceStatus,
+                invoiceTxHash: invoiceHas?.transaction
+            });
 
             if (!invoice) {
                 return this.sendError(reply, "Invoice not found", 404);

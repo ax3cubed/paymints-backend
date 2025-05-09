@@ -157,7 +157,6 @@ export class InvoiceService {
 
       // Update allowed fields
       const updatableFields: (keyof Invoice)[] = [
-        "invoiceNo",
         "invoiceType",
         "invoiceTitle",
         "invoiceImage",

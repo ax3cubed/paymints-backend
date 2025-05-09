@@ -6,6 +6,7 @@ import {
     getInvoicesSchema,
     updateInvoiceSchema,
     deleteInvoiceSchema,
+    activateInvoiceSchema,
 } from "@/schemas/invoice.schema";
 import { InvoiceController } from "@/controllers/invoice.controller";
 
@@ -38,6 +39,13 @@ export async function invoiceRoutes(fastify: FastifyInstance) {
         "/:id",
         { schema: updateInvoiceSchema },
         (request, reply) => invoiceController.updateInvoice(request, reply)
+    );
+
+    // Activate invoice
+    fastify.post(
+        "/activate",
+        { schema: activateInvoiceSchema },
+        (request, reply) => invoiceController.activateInvoice(request, reply)
     );
 
     // Delete invoice
