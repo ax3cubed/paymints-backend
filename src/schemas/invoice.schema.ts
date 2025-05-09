@@ -282,9 +282,9 @@ export const getInvoiceSchema = {
     params: {
         type: "object",
         properties: {
-            id: { type: "string", description: "Invoice ID" },
+            invoiceNo: { type: "string", description: "Invoice No" },
         },
-        required: ["id"],
+        required: ["invoiceNo"],
     },
     response: {
         200: {
@@ -396,7 +396,7 @@ export const updateInvoiceSchema = {
         properties: {
             id: { type: "string", description: "Invoice ID" },
         },
-        required: ["id", "invoiceMintAddress", "invoiceTxHash"],
+        required: ["id", "invoiceNo", "invoiceMintAddress", "invoiceTxHash"],
     },
     body: {
         type: "object",
@@ -500,7 +500,6 @@ export const activateInvoiceSchema = {
         properties: {
             id: { type: "string", description: "Invoice ID" },
         },
-        required: ["invoiceStatus", "invoiceNo"],
     },
     body: {
         type: "object",

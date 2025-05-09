@@ -60,7 +60,7 @@ export class Invoice extends DecoratedEntity {
 	@Column({ type: "text", default: "", nullable: false })
 	invoiceDescription!: string;
 
-	@OneToOne(() => User, (user) => user.address, { eager: true })
+	@ManyToOne(() => User, (user) => user.invoices, { eager: false })
 	// @JoinColumn({ name: "createdBy" })
 	createdBy!: User;
 

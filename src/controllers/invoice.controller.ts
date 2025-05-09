@@ -51,7 +51,7 @@ const createInvoiceSchema = z.object({
 });
 
 const updateInvoiceSchema = z.object({
-    invoiceNo: z.string().optional(),
+    invoiceNo: z.string(),
     invoiceType: z
         .enum([
             InvoiceType.INVOICE,
@@ -152,11 +152,11 @@ export class InvoiceController extends BaseController {
         reply: FastifyReply
     ) {
         try {
-            //   const { id } = request.params;
-            const { id } = (request.params as { id: string });
+            //   const { invoiceNo } = request.params;
+            const { invoiceNo } = (request.params as { invoiceNo: string });
             const user = await this.invoiceService.getAuthenticatedUser(request);
 
-            const invoice = await this.invoiceService.getInvoice(id, user.id);
+            const invoice = await this.invoiceService.getInvoice(user.id, invoiceNo);
 
             if (!invoice) {
                 return this.sendError(reply, "Invoice not found", 404);
@@ -222,7 +222,7 @@ export class InvoiceController extends BaseController {
                 const invoiceHash = await this.smartContractService.closeInvoice(user.address, invoiceData.invoiceTxHash, invoiceData.invoiceMintAddress)
             }
 
-            const invoice = await this.invoiceService.updateInvoice(id, user.id, invoiceData);
+            const invoice = await this.invoiceService.updateInvoice(invoiceData.invoiceNo, user.id, invoiceData);
 
             if (!invoice) {
                 return this.sendError(reply, "Invoice not found", 404);
@@ -251,7 +251,7 @@ export class InvoiceController extends BaseController {
             const invoiceData = activateInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
 
-            const inv = await this.invoiceService.getInvoice(invoiceData.invoiceNo, user.id);
+            const inv = await this.invoiceService.getInvoice(user.id, invoiceData.invoiceNo);
 
             var invoiceHas;
 
@@ -278,7 +278,8 @@ export class InvoiceController extends BaseController {
                 invoiceHas = invoiceHash;
             }
 
-            const invoice = await this.invoiceService.updateInvoice(inv._id, user.id, {
+            const invoice = await this.invoiceService.updateInvoice(inv.invoiceNo, user.id, {
+                invoiceNo: inv.invoiceNo,
                 invoiceStatus: invoiceData.invoiceStatus,
                 invoiceTxHash: invoiceHas?.transaction
             });
@@ -310,10 +311,10 @@ export class InvoiceController extends BaseController {
     ) {
         try {
             // const { id } = request.params;
-            const { id } = (request.params as { id: string });
+            const { invoiceNo } = (request.params as { invoiceNo: string });
             const user = await this.invoiceService.getAuthenticatedUser(request);
 
-            const success = await this.invoiceService.deleteInvoice(id, user.id);
+            const success = await this.invoiceService.deleteInvoice(invoiceNo, user.id);
 
             if (!success) {
                 return this.sendError(reply, "Invoice not found", 404);

@@ -18,6 +18,7 @@ import {
 import { Beneficiary } from "./Beneficiary";
 import { DecoratedEntity } from "./decorated.entity";
 import { Payroll } from "./Payroll";
+import { Invoice } from "./Invoice";
 
 
 @Entity()
@@ -72,4 +73,7 @@ export class User extends DecoratedEntity{
 
 	@OneToMany(() => Payroll, (b) => b.createdBy, { cascade: true, eager: true })
 	creditScoreHistory!: Payroll[];
+
+	@OneToMany(() => Invoice, (invoice) => invoice.createdBy)
+	invoices!: Invoice[];
 }

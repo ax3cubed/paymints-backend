@@ -22,7 +22,7 @@ export async function invoiceRoutes(fastify: FastifyInstance) {
 
     // Get specific invoice by ID
     fastify.get(
-        "/:id",
+        "/:invoiceNo",
         { schema: getInvoiceSchema },
         (request, reply) => invoiceController.getInvoice(request, reply)
     );

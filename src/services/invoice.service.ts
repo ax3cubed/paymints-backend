@@ -44,7 +44,7 @@ export class InvoiceService {
   async findById(id: string, relations: string[] = []): Promise<Invoice | null> {
     const invoice = await this.invoiceRepository.findOne({
       where: { invoiceNo: id },
-      relations: [...relations, "createdBy", "discountCodes", "services"],
+      relations: [...relations],
     });
 
     return invoice;
@@ -56,7 +56,7 @@ export class InvoiceService {
   async createInvoice(invoiceData: Partial<Invoice>): Promise<Invoice> {
     try {
       // Validate required fields
-      if (!invoiceData.invoiceNo || !invoiceData.invoiceType || !invoiceData.invoiceTitle 
+      if (!invoiceData.invoiceNo || !invoiceData.invoiceType || !invoiceData.invoiceTitle
         || !invoiceData.invoiceMintAddress || !invoiceData.services) {
         throw new ValidationError("Required invoice fields are missing");
       }
@@ -116,19 +116,30 @@ export class InvoiceService {
   /**
    * Get invoice by ID with authorization check
    */
-  async getInvoice(id: string, userId: number): Promise<Invoice> {
-    const invoice = await this.findById(id, ["createdBy", "discountCodes", "services"]);
+  async getInvoice(userId: number, invoiceNo: string): Promise<Invoice> {
+    // const invoice = await this.invoiceRepository.findOne({
+    //   where: { invoiceNo },
+    //   relations: [...relations, "createdBy", "discountCodes", "services"],
+    // });
+    var id = "9760320361";
+
+    const invoice = await this.findById(invoiceNo, ["createdBy", "discountCodes", "services"]);
 
     if (!invoice) {
-      throw new NotFoundError("Invoice", id);
+      throw new NotFoundError("Invoice", invoiceNo);
     }
 
-    if (invoice.createdBy.id !== userId) {
+    console.log('-----------------------------------------------');
+    console.log(invoice);
+    console.log('Checking for the Invoice CreatedBy ID:', invoice.createdBy?.id);
+
+    if (!invoice.createdBy || invoice.createdBy.id !== userId) {
       throw new AuthorizationError("Not authorized to access this invoice");
     }
 
     return invoice;
   }
+
 
   /**
    * Get all invoices for a user
@@ -153,7 +164,7 @@ export class InvoiceService {
    */
   async updateInvoice(id: string, userId: number, invoiceData: Partial<Invoice>): Promise<Invoice> {
     try {
-      const invoice = await this.getInvoice(id, userId);
+      const invoice = await this.getInvoice(userId, id);
 
       // Update allowed fields
       const updatableFields: (keyof Invoice)[] = [
@@ -203,7 +214,7 @@ export class InvoiceService {
    */
   async deleteInvoice(id: string, userId: number): Promise<boolean> {
     try {
-      const invoice = await this.getInvoice(id, userId);
+      const invoice = await this.getInvoice(userId, id);
 
       await this.invoiceRepository.remove(invoice);
       logger.info({ invoiceId: id }, "Invoice deleted successfully");
