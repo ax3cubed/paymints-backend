@@ -25,7 +25,6 @@ import { paymentRoutes } from "./routes/payment";
 import { payrollRoutes } from "./routes/payroll";
 import { txnRoutes } from "./routes/transaction";
 
-
 // Create Fastify instance
 const server: FastifyInstance = Fastify({
 	logger: false, // We use our custom logger
@@ -60,7 +59,7 @@ server.addHook("onRequest", async (request, reply) => {
 		if (
 			request.url &&
 			(request.url.startsWith(`${config.app.apiPrefix}/auth`) ||
-				request.url === `${config.app.apiPrefix}/health` || 
+				request.url === `${config.app.apiPrefix}/health` ||
 				request.url.startsWith(`${config.app.apiPrefix}/txn`) ||
 				isSwaggerRoute(request.url))
 		) {
@@ -86,6 +85,7 @@ server.setErrorHandler((error, request, reply) => {
 
 	// Handle validation errors from fastify
 	if (error.validation) {
+		logger.error({ err: error, requestId: request.requestId });
 		return ResponseHandler.error(
 			reply,
 			new AppError("Validation error", 400, ErrorCodes.VALIDATION_ERROR, {
@@ -110,10 +110,10 @@ server.setErrorHandler((error, request, reply) => {
 // Register routes
 server.register(authRoutes, { prefix: `${config.app.apiPrefix}/auth` });
 server.register(userRoutes, { prefix: `${config.app.apiPrefix}/user` });
-server.register(invoiceRoutes, { prefix: `${config.app.apiPrefix}/invoice` })
-server.register(txnRoutes, { prefix: `${config.app.apiPrefix}/txn` })
-server.register(paymentRoutes, { prefix: `${config.app.apiPrefix}/payments` })
-server.register(payrollRoutes, { prefix: `${config.app.apiPrefix}/payroll` })
+server.register(invoiceRoutes, { prefix: `${config.app.apiPrefix}/invoice` });
+server.register(txnRoutes, { prefix: `${config.app.apiPrefix}/txn` });
+server.register(paymentRoutes, { prefix: `${config.app.apiPrefix}/payments` });
+server.register(payrollRoutes, { prefix: `${config.app.apiPrefix}/payroll` });
 
 // Add this after registering routes but before starting the server
 // Health check route with Swagger documentation
@@ -162,16 +162,15 @@ const start = async () => {
 		await server.listen({
 			port: config.app.port,
 			host: config.app.host,
-			
 		});
-		if(config.app.environment !== "production") {
-    //   logger.info(config);
-    }
+		if (config.app.environment !== "production") {
+			//   logger.info(config);
+		}
 		logger.info(
 			{
 				address: server.server.address(),
 				environment: config.app.environment,
-                swaggerUrl: `http://${config.app.host}:${config.app.port}/documentation`,
+				swaggerUrl: `http://${config.app.host}:${config.app.port}/documentation`,
 			},
 			`Server started successfully`
 		);

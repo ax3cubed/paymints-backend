@@ -353,7 +353,6 @@ export class SmartContractService {
    */
   async createInvoice(
     issuer: string,
-    invoiceId: string,
     amount: string,
     description: string,
     deadline: string,
@@ -364,7 +363,6 @@ export class SmartContractService {
       const mintPubkey = new PublicKey(mint);
       if (!PublicKey.isOnCurve(issuerPubkey)) throw new Error("Invalid issuer address");
       if (!PublicKey.isOnCurve(mintPubkey)) throw new Error("Invalid mint address");
-      if (invoiceId.length > 64) throw new Error("Invoice ID must be 64 characters or less");
       if (description.length > 256) throw new Error("Description must be 256 characters or less");
       const amountBN = new anchor.BN(amount);
       if (amountBN.lte(new anchor.BN(0))) throw new Error("Amount must be positive");
@@ -373,6 +371,9 @@ export class SmartContractService {
         throw new Error("Deadline must be in the future");
       }
 
+      const invoiceId =`INV-${Math.floor(Math.random() * 10000)
+				.toString()
+				.padStart(4, "0")}`; // Generate a random invoice ID
       const [invoicePDA, invoiceBump] = getInvoicePDA(issuerPubkey, invoiceId);
 
       const tx = new Transaction();

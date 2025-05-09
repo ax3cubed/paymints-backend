@@ -1,34 +1,34 @@
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    OneToMany,
-    CreateDateColumn,
-    UpdateDateColumn,
-    ManyToOne,
-    OneToOne,
+	Entity,
+	Column,
+	PrimaryGeneratedColumn,
+	OneToMany,
+	CreateDateColumn,
+	UpdateDateColumn,
+	ManyToOne,
+	OneToOne,
 } from "typeorm";
 import {
-    IsEmail,
-    IsNotEmpty,
-    MinLength,
-    IsOptional,
-    IsBoolean,
-    IsString,
-    IsEnum,
-    IsIn,
+	IsEmail,
+	IsNotEmpty,
+	MinLength,
+	IsOptional,
+	IsBoolean,
+	IsString,
+	IsEnum,
+	IsIn,
 } from "class-validator";
 import { DecoratedEntity } from "./decorated.entity";
 import { User } from "./User";
 import { DiscountCodes } from "./Discount";
 import { Services } from "./Services";
 
-
 export enum InvoiceType {
 	INVOICE = "standard",
 	DONATION = "donation",
-    SUBSCRIPTION = "subscription",
-    CUSTOM = "custom",
+	SUBSCRIPTION = "subscription",
+	MILESTONE = "milestone",
+	CUSTOM = "custom",
 }
 
 export enum InvoiceStatus {
@@ -42,13 +42,10 @@ export enum InvoiceVisibility {
 	PUBLIC = "public",
 }
 
-
-
 @Entity()
 export class Invoice extends DecoratedEntity {
-
-    @Column({ type: "varchar", length: 255, nullable: false })
-    @IsString()
+	@Column({ type: "varchar", length: 255, nullable: false })
+	@IsString()
 	invoiceNo!: string;
 
 	@Column({ type: "enum", enum: InvoiceType })
@@ -73,7 +70,7 @@ export class Invoice extends DecoratedEntity {
 	@Column({ type: "varchar", length: 255, nullable: true })
 	invoiceCategory!: string;
 
-    @Column({ type: "varchar", length: 255, nullable: false })
+	@Column({ type: "varchar", length: 255, nullable: false })
 	invoiceMintAddress!: string;
 
 	@Column({ type: "varchar", length: 255, default: "", nullable: false })
@@ -110,7 +107,11 @@ export class Invoice extends DecoratedEntity {
 	@Column({ type: "boolean", default: true })
 	tipOptionEnabled!: boolean;
 
-	@Column({ type: "enum", enum: InvoiceVisibility, default: InvoiceVisibility.PRIVATE })
+	@Column({
+		type: "enum",
+		enum: InvoiceVisibility,
+		default: InvoiceVisibility.PRIVATE,
+	})
 	invoiceVisibility!: InvoiceVisibility;
 
 	@Column({ type: "boolean", default: true })

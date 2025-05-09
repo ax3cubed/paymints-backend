@@ -3,12 +3,12 @@ import { InvoiceType, InvoiceStatus, InvoiceVisibility } from "../entities/Invoi
 
 // Zod schemas for validation (used in controller)
 const createInvoiceZodSchema = z.object({
-    invoiceNo: z.string(),
     invoiceType: z.enum([
         InvoiceType.INVOICE,
         InvoiceType.DONATION,
         InvoiceType.SUBSCRIPTION,
         InvoiceType.CUSTOM,
+        InvoiceType.MILESTONE,
     ]),
     invoiceTitle: z.string(),
     invoiceImage: z.string().optional(),
@@ -52,6 +52,7 @@ const updateInvoiceZodSchema = z.object({
             InvoiceType.DONATION,
             InvoiceType.SUBSCRIPTION,
             InvoiceType.CUSTOM,
+            InvoiceType.MILESTONE,
         ])
         .optional(),
     invoiceTitle: z.string().optional(),
@@ -174,12 +175,12 @@ export const createInvoiceSchema = {
     // security: [{ bearerAuth: [] }],
     body: {
         type: "object",
-        required: ["invoiceNo", "invoiceType", "invoiceTitle", "invoiceMintAddress"],
+        required: [ "invoiceType", "invoiceTitle", "invoiceMintAddress"],
         properties: {
-            invoiceNo: { type: "string" },
+            
             invoiceType: {
                 type: "string",
-                enum: ["standard", "donation", "subscription", "custom"],
+                enum: ["standard", "donation", "subscription", "custom", "milestone"],
             },
             invoiceTitle: { type: "string" },
             invoiceImage: { type: "string" },
@@ -403,7 +404,7 @@ export const updateInvoiceSchema = {
             invoiceNo: { type: "string" },
             invoiceType: {
                 type: "string",
-                enum: ["standard", "donation", "subscription", "custom"],
+                enum: ["standard", "donation", "subscription", "custom", "milestone"],
             },
             invoiceTitle: { type: "string" },
             invoiceImage: { type: "string" },

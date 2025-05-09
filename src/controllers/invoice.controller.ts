@@ -7,12 +7,13 @@ import { SmartContractService } from "@/services/smartcontract.service";
 
 // Validation schemas (unchanged from previous implementation)
 const createInvoiceSchema = z.object({
-    invoiceNo: z.string(),
+ 
     invoiceType: z.enum([
         InvoiceType.INVOICE,
         InvoiceType.DONATION,
         InvoiceType.SUBSCRIPTION,
         InvoiceType.CUSTOM,
+        InvoiceType.MILESTONE,
     ]),
     invoiceTitle: z.string(),
     invoiceImage: z.string().optional(),
@@ -56,6 +57,7 @@ const updateInvoiceSchema = z.object({
             InvoiceType.DONATION,
             InvoiceType.SUBSCRIPTION,
             InvoiceType.CUSTOM,
+            InvoiceType.MILESTONE,
         ])
         .optional(),
     invoiceTitle: z.string().optional(),
@@ -110,7 +112,6 @@ export class InvoiceController extends BaseController {
             const user = await this.invoiceService.getAuthenticatedUser(request);
             const invoiceHash = await this.smartContractService.createInvoice(
                 user.address,
-                invoiceData.invoiceNo,
                 invoiceData.totalAmount?.toString(),
                 invoiceData.invoiceDescription || '',
                 invoiceData.dueDate || '',
