@@ -41,13 +41,32 @@ export class InvoiceService {
   /**
    * Find invoice by ID
    */
+  private isEmbeddedCreatedBy(): boolean {
+    return false; // Set to false if you switch to Option A (references)
+  }
   async findById(id: string, relations: string[] = []): Promise<Invoice | null> {
-    const invoice = await this.invoiceRepository.findOne({
-      where: { invoiceNo: id },
-      relations: [...relations],
-    });
 
-    return invoice;
+    const invoiceRepository = AppDataSource.getRepository(Invoice);
+
+    // For embedded documents, no $lookup is needed for discountCodes or services
+    const pipeline: any[] = [
+      { $match: { invoiceNo: id } },
+    ];
+
+   
+    const invoices = await invoiceRepository.manager
+      .getMongoRepository(Invoice)
+      .aggregate(pipeline)
+      .toArray();
+
+    if (!invoices.length) {
+      console.log(`Invoice with invoiceNo ${id} not found`);
+      return null;
+    }
+
+    const invoice = invoices[0];
+    console.log("Aggregated invoice:", invoice);
+    return invoice as Invoice;
   }
 
   /**
@@ -117,11 +136,7 @@ export class InvoiceService {
    * Get invoice by ID with authorization check
    */
   async getInvoice(userId: number, invoiceNo: string): Promise<Invoice> {
-    // const invoice = await this.invoiceRepository.findOne({
-    //   where: { invoiceNo },
-    //   relations: [...relations, "createdBy", "discountCodes", "services"],
-    // });
-    var id = "9760320361";
+
 
     const invoice = await this.findById(invoiceNo, ["createdBy", "discountCodes", "services"]);
 
@@ -176,6 +191,7 @@ export class InvoiceService {
         "invoiceCategory",
         "invoiceMintAddress",
         "clientName",
+        "createdBy",
         "clientWallet",
         "clientEmail",
         "clientAddress",
@@ -191,13 +207,19 @@ export class InvoiceService {
         "taxRate",
         "taxAmount",
         "totalAmount",
+        "invoiceTxHash"
       ];
 
       for (const field of updatableFields) {
         if (invoiceData[field] !== undefined) {
           (invoice[field] as any) = invoiceData[field];
         }
+        if(field === "createdBy"){
+          (invoice[field] as any) = invoice.createdBy;
+        }
       }
+
+      console.log(invoice)
 
       await this.invoiceRepository.save(invoice);
       logger.info({ invoiceId: invoice.id }, "Invoice updated successfully");

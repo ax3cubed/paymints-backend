@@ -1,91 +1,6 @@
 import { z } from "zod";
 import { InvoiceType, InvoiceStatus, InvoiceVisibility } from "../entities/Invoice";
 
-// Zod schemas for validation (used in controller)
-const createInvoiceZodSchema = z.object({
-    invoiceType: z.enum([
-        InvoiceType.INVOICE,
-        InvoiceType.DONATION,
-        InvoiceType.SUBSCRIPTION,
-        InvoiceType.CUSTOM,
-        InvoiceType.MILESTONE,
-    ]),
-    invoiceTitle: z.string(),
-    invoiceImage: z.string().optional(),
-    invoiceDescription: z.string().optional(),
-    invoiceStatus: z
-        .enum([
-            InvoiceStatus.DRAFT,
-            InvoiceStatus.PROCESSING,
-            InvoiceStatus.COMPLETED,
-        ])
-        .optional(),
-    invoiceCategory: z.string().optional(),
-    invoiceMintAddress: z.string(),
-    clientName: z.string().optional(),
-    clientWallet: z.string().optional(),
-    clientEmail: z.string().email().optional(),
-    clientAddress: z.string().optional(),
-    isClientInformation: z.boolean().optional(),
-    isExpirable: z.boolean().optional(),
-    dueDate: z.string().optional(),
-    discountCodes: z.array(z.any()).optional(), // Replace with specific schema if available
-    tipOptionEnabled: z.boolean().optional(),
-    invoiceVisibility: z
-        .enum([InvoiceVisibility.PRIVATE, InvoiceVisibility.PUBLIC])
-        .optional(),
-    autoEmailReceipt: z.boolean().optional(),
-    QRcodeEnabled: z.boolean().optional(),
-    services: z.array(z.any()).optional(), // Replace with specific schema if available
-    subtotal: z.number().optional(),
-    discount: z.number().optional(),
-    taxRate: z.number().optional(),
-    taxAmount: z.number().optional(),
-    totalAmount: z.number().optional(),
-});
-
-const updateInvoiceZodSchema = z.object({
-    invoiceNo: z.string().optional(),
-    invoiceType: z
-        .enum([
-            InvoiceType.INVOICE,
-            InvoiceType.DONATION,
-            InvoiceType.SUBSCRIPTION,
-            InvoiceType.CUSTOM,
-            InvoiceType.MILESTONE,
-        ])
-        .optional(),
-    invoiceTitle: z.string().optional(),
-    invoiceImage: z.string().optional(),
-    invoiceDescription: z.string().optional(),
-    invoiceStatus: z
-        .enum([
-            InvoiceStatus.DRAFT,
-            InvoiceStatus.PROCESSING,
-            InvoiceStatus.COMPLETED,
-        ])
-        .optional(),
-    invoiceCategory: z.string().optional(),
-    invoiceMintAddress: z.string().optional(),
-    clientName: z.string().optional(),
-    clientWallet: z.string().optional(),
-    clientEmail: z.string().email().optional(),
-    clientAddress: z.string().optional(),
-    isClientInformation: z.boolean().optional(),
-    isExpirable: z.boolean().optional(),
-    dueDate: z.string().optional(),
-    tipOptionEnabled: z.boolean().optional(),
-    invoiceVisibility: z
-        .enum([InvoiceVisibility.PRIVATE, InvoiceVisibility.PUBLIC])
-        .optional(),
-    autoEmailReceipt: z.boolean().optional(),
-    QRcodeEnabled: z.boolean().optional(),
-    subtotal: z.number().optional(),
-    discount: z.number().optional(),
-    taxRate: z.number().optional(),
-    taxAmount: z.number().optional(),
-    totalAmount: z.number().optional(),
-});
 
 // Zod schema for params
 const idParamsSchema = z.object({
@@ -119,6 +34,7 @@ const invoiceResponseSchema = {
             properties: {
                 id: { type: "number" },
                 address: { type: "string" },
+                username: {type: "string"}
             },
         },
         invoiceStatus: {
@@ -409,7 +325,6 @@ export const updateInvoiceSchema = {
             invoiceTitle: { type: "string" },
             invoiceImage: { type: "string" },
             invoiceDescription: { type: "string" },
-            invoiceTxHash: { type: "string" },
             invoiceStatus: {
                 type: "string",
                 enum: ["0", "1", "2"],
@@ -504,11 +419,7 @@ export const activateInvoiceSchema = {
     body: {
         type: "object",
         properties: {
-            invoiceNo: { type: "string" },
-            invoiceStatus: {
-                type: "string",
-                enum: ["0", "1", "2"],
-            }
+            invoiceNo: { type: "string" }
         },
     },
     response: {

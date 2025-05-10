@@ -95,13 +95,7 @@ const updateInvoiceSchema = z.object({
 });
 
 const activateInvoiceSchema = z.object({
-    invoiceNo: z.string(),
-    invoiceStatus: z
-        .enum([
-            InvoiceStatus.DRAFT,
-            InvoiceStatus.PROCESSING,
-            InvoiceStatus.COMPLETED,
-        ])
+    invoiceNo: z.string()
 });
 
 export class InvoiceController extends BaseController {
@@ -155,6 +149,7 @@ export class InvoiceController extends BaseController {
             //   const { invoiceNo } = request.params;
             const { invoiceNo } = (request.params as { invoiceNo: string });
             const user = await this.invoiceService.getAuthenticatedUser(request);
+            var invoicePayersFromSC;
 
             const invoice = await this.invoiceService.getInvoice(user.id, invoiceNo);
 
@@ -162,7 +157,7 @@ export class InvoiceController extends BaseController {
                 return this.sendError(reply, "Invoice not found", 404);
             }
 
-            const invoicePayersFromSC = await this.smartContractService.getInvoicePayments(invoice.invoiceTxHash)
+            if (invoice.invoiceTxHash) invoicePayersFromSC = await this.smartContractService.getInvoicePayments(invoice.invoiceTxHash)
 
             const response = {
                 ...invoice,
@@ -172,7 +167,7 @@ export class InvoiceController extends BaseController {
             return this.sendSuccess(
                 reply,
                 {
-                    response,
+                    invoice: response,
                     success: true,
                     meta: { timestamp: new Date().toISOString() },
                 },
@@ -222,6 +217,10 @@ export class InvoiceController extends BaseController {
                 const invoiceHash = await this.smartContractService.closeInvoice(user.address, invoiceData.invoiceTxHash, invoiceData.invoiceMintAddress)
             }
 
+            const newInvoiceData = {
+                ...invoiceData
+            }
+
             const invoice = await this.invoiceService.updateInvoice(invoiceData.invoiceNo, user.id, invoiceData);
 
             if (!invoice) {
@@ -259,28 +258,20 @@ export class InvoiceController extends BaseController {
                 return this.sendError(reply, "Invoice not found", 404);
             }
 
-            if (invoiceData.invoiceStatus === InvoiceStatus.COMPLETED) {
-                const invoiceHash = await this.smartContractService.closeInvoice(user.address, inv.invoiceTxHash, inv.invoiceMintAddress)
-                invoiceHas = invoiceHash;
-            }
+            const invoiceHash = await this.smartContractService.createInvoice(
+                user.address,
+                invoiceData.invoiceNo,
+                inv.totalAmount?.toString(),
+                inv.invoiceDescription || '',
+                inv.dueDate || '',
+                inv.invoiceMintAddress
+            )
+            invoiceHas = invoiceHash;
 
-            if (invoiceData.invoiceStatus === InvoiceStatus.PROCESSING) {
-
-
-                const invoiceHash = await this.smartContractService.createInvoice(
-                    user.address,
-                    invoiceData.invoiceNo,
-                    inv.totalAmount?.toString(),
-                    inv.invoiceDescription || '',
-                    inv.dueDate || '',
-                    inv.invoiceMintAddress
-                )
-                invoiceHas = invoiceHash;
-            }
 
             const invoice = await this.invoiceService.updateInvoice(inv.invoiceNo, user.id, {
                 invoiceNo: inv.invoiceNo,
-                invoiceStatus: invoiceData.invoiceStatus,
+                invoiceStatus: InvoiceStatus.PROCESSING,
                 invoiceTxHash: invoiceHas?.transaction
             });
 
