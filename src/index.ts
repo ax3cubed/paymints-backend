@@ -24,6 +24,7 @@ import { url } from "inspector";
 import { paymentRoutes } from "./routes/payment";
 import { payrollRoutes } from "./routes/payroll";
 import { txnRoutes } from "./routes/transaction";
+import { swapRoutes } from "./routes/swap";
 
 // Create Fastify instance
 const server: FastifyInstance = Fastify({
@@ -114,6 +115,7 @@ server.register(invoiceRoutes, { prefix: `${config.app.apiPrefix}/invoice` });
 server.register(txnRoutes, { prefix: `${config.app.apiPrefix}/txn` });
 server.register(paymentRoutes, { prefix: `${config.app.apiPrefix}/payments` });
 server.register(payrollRoutes, { prefix: `${config.app.apiPrefix}/payroll` });
+server.register(swapRoutes, { prefix: `${config.app.apiPrefix}/swap` });
 
 // Add this after registering routes but before starting the server
 // Health check route with Swagger documentation

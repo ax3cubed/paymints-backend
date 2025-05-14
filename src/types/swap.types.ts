@@ -1,8 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
-import { FastifyRequest } from 'fastify';
-
-export interface SwapRequest extends FastifyRequest
- {
+export interface SwapRequest {
   poolAddress: string;
   inTokenIndex: number;
   outTokenIndex: number;
@@ -12,8 +8,14 @@ export interface SwapRequest extends FastifyRequest
 }
 
 export interface SwapResponse {
+  serializedTransaction: string;
+}
+
+export interface SubmitSwapRequest {
+  serializedTransaction: string;
+}
+
+export interface SubmitSwapResponse {
   success: boolean;
-  signature?: string;
-  confirmation?: any;
-  error?: string;
+  signature: string;
 }

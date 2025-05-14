@@ -1,31 +1,32 @@
-import { Connection, PublicKey, Keypair, Commitment } from "@solana/web3.js";
+import {
+	Connection,
+	PublicKey,
+	Commitment,
+	Transaction,
+	ComputeBudgetProgram,
+} from "@solana/web3.js";
 import { init, swapExactIn } from "@perena/numeraire-sdk";
-import bs58 from "bs58";
-import { buildOptimalTransaction } from "@/helpers/build-optimal-transaction";
 
-const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
+import { getSimulationComputeUnits } from "@solana-developers/helpers";
+import { rpcs } from "@/config";
+import { AnchorProvider, setProvider } from "@coral-xyz/anchor";
+
+const SOLANA_RPC = rpcs[1];
 const COMMITMENT: Commitment = "confirmed";
-const CU_LIMIT = 1_500_000;
-const CU_PRICE = 100_000; // micro-lamports
 
 export class SwapService {
 	private connection: Connection;
-	private payer: Keypair;
 
 	constructor() {
 		this.connection = new Connection(SOLANA_RPC, COMMITMENT);
-		const secret = process.env.BACKEND_WALLET_SECRET_KEY;
-		if (!secret)
-			throw { statusCode: 500, message: "Backend wallet secret not set" };
-		try {
-			this.payer = Keypair.fromSecretKey(bs58.decode(secret));
-		} catch {
-			throw { statusCode: 500, message: "Invalid backend wallet secret" };
-		}
-		init({ payer: this.payer });
+		const provider = new AnchorProvider(this.connection, {} as any, {
+			commitment: "confirmed",
+		});
+		setProvider(provider);
+		init({ applyD: false });
 	}
 
-	async performSwap({
+	async prepareSwap({
 		poolAddress,
 		inTokenIndex,
 		outTokenIndex,
@@ -39,7 +40,7 @@ export class SwapService {
 		amountIn: number;
 		minAmountOut: number;
 		userPublicKey: PublicKey;
-	}): Promise<{ signature: string; confirmation: any }> {
+	}): Promise<string> {
 		try {
 			// Prepare swap instructions
 			const swapResult = await swapExactIn({
@@ -48,34 +49,42 @@ export class SwapService {
 				out: outTokenIndex,
 				exactAmountIn: amountIn,
 				minAmountOut,
-				cuLimit: CU_LIMIT,
-
-				// user: userPublicKey,
+				cuLimit: 1_500_000,
 			});
-			// Build transaction
-			const { transaction } = await buildOptimalTransaction(
+
+			// Create transaction
+			const transaction = new Transaction();
+
+			// Estimate compute units
+			let units = await getSimulationComputeUnits(
 				this.connection,
-				swapResult.call,
-				this.payer,
-				[] // Empty lookupTables array
+				swapResult.call.instructions,
+				userPublicKey,
+				[]
 			);
-			// Sign and send
-			transaction.sign([this.payer]);
-			const signature = await this.connection.sendRawTransaction(
-				transaction.serialize(),
-				{ skipPreflight: false }
+			units = units ? Math.ceil(units * 1.2) : 1_500_000; // 20% buffer or default
+
+			// Add compute budget instructions
+			transaction.add(
+				ComputeBudgetProgram.setComputeUnitLimit({ units }),
+				ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 100_000 })
 			);
-			const confirmation = await this.connection.confirmTransaction(
-				signature,
+			transaction.add(...swapResult.call.instructions);
+
+			// Set fee payer and recent blockhash
+			transaction.feePayer = userPublicKey;
+			const { blockhash } = await this.connection.getLatestBlockhash(
 				COMMITMENT
 			);
-			return { signature, confirmation };
+			transaction.recentBlockhash = blockhash;
+
+			// Serialize transaction for frontend signing
+			return transaction
+				.serialize({ requireAllSignatures: false })
+				.toString("base64");
 		} catch (err: any) {
-			if (err.message?.includes("insufficient funds")) {
-				throw {
-					statusCode: 400,
-					message: "Insufficient funds in backend wallet",
-				};
+			if (err.message?.includes("invalid public key")) {
+				throw { statusCode: 400, message: "Invalid pool or user public key" };
 			}
 			if (err.message?.includes("token account")) {
 				throw { statusCode: 400, message: "Invalid or missing token account" };
@@ -85,7 +94,25 @@ export class SwapService {
 			}
 			throw {
 				statusCode: 500,
-				message: err.message || "Solana transaction failed",
+				message: err.message + "Failed to prepare transaction",
+			};
+		}
+	}
+
+	async submitSignedTransaction(transaction: Transaction): Promise<string> {
+		try {
+			const signature = await this.connection.sendRawTransaction(
+				transaction.serialize(),
+				{
+					skipPreflight: false,
+				}
+			);
+			await this.connection.confirmTransaction(signature, COMMITMENT);
+			return signature;
+		} catch (err: any) {
+			throw {
+				statusCode: 500,
+				message: err.message || "Failed to submit transaction",
 			};
 		}
 	}

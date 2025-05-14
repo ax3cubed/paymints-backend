@@ -14,7 +14,7 @@ const envFile =
 		: ".env.development";
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
-const rpcs = [
+export const rpcs = [
 	"https://api.mainnet-beta.solana.com",
 	"https://api.devnet.solana.com",
 	"https://api.localnet.solana.com"
