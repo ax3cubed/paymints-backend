@@ -355,6 +355,84 @@ export class InvoiceController extends BaseController {
     }
 
     /**
+     * Complete invoice
+     */
+    async completeInvoice(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const invoiceData = activateInvoiceSchema.parse(request.body);
+            const user = await this.invoiceService.getAuthenticatedUser(request);
+            logger.info({ requestId: request.requestId, userId: user._id, invoiceNo: invoiceData.invoiceNo }, "Completed invoice");
+
+            const inv = await this.invoiceService.getInvoice(user._id.toString(), invoiceData.invoiceNo);
+
+            // const invoiceHash = await this.smartContractService.createInvoice(
+            //     user.address,
+            //     invoiceData.invoiceNo,
+            //     inv.totalAmount?.toString(),
+            //     inv.invoiceDescription || "",
+            //     inv.dueDate || "",
+            //     inv.invoiceMintAddress
+            // );
+
+            const invoice = await this.invoiceService.updateInvoice(inv.invoiceNo, user._id.toString(), {
+                invoiceNo: inv.invoiceNo,
+                invoiceStatus: InvoiceStatus.COMPLETED
+            });
+
+            return this.sendSuccess(
+                reply,
+                {
+                    invoice,
+                    success: true,
+                    meta: { timestamp: new Date().toISOString() },
+                },
+                "Invoice updated successfully"
+            );
+        } catch (error) {
+            return this.handleError(error as Error, reply, request.requestId);
+        }
+    }
+
+    /**
+     * Overdue invoice
+     */
+    async overDueInvoice(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const invoiceData = activateInvoiceSchema.parse(request.body);
+            const user = await this.invoiceService.getAuthenticatedUser(request);
+            logger.info({ requestId: request.requestId, userId: user._id, invoiceNo: invoiceData.invoiceNo }, "Overdue invoice");
+
+            const inv = await this.invoiceService.getInvoice(user._id.toString(), invoiceData.invoiceNo);
+
+            // const invoiceHash = await this.smartContractService.createInvoice(
+            //     user.address,
+            //     invoiceData.invoiceNo,
+            //     inv.totalAmount?.toString(),
+            //     inv.invoiceDescription || "",
+            //     inv.dueDate || "",
+            //     inv.invoiceMintAddress
+            // );
+
+            const invoice = await this.invoiceService.updateInvoice(inv.invoiceNo, user._id.toString(), {
+                invoiceNo: inv.invoiceNo,
+                invoiceStatus: InvoiceStatus.OVERDUE
+            });
+
+            return this.sendSuccess(
+                reply,
+                {
+                    invoice,
+                    success: true,
+                    meta: { timestamp: new Date().toISOString() },
+                },
+                "Invoice updated successfully"
+            );
+        } catch (error) {
+            return this.handleError(error as Error, reply, request.requestId);
+        }
+    }
+
+    /**
      * Delete invoice
      */
     async deleteInvoice(request: FastifyRequest, reply: FastifyReply) {

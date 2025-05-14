@@ -48,9 +48,23 @@ export async function invoiceRoutes(fastify: FastifyInstance) {
         (request, reply) => invoiceController.activateInvoice(request, reply)
     );
 
+    // Complete invoice
+    fastify.post(
+        "/completed",
+        { schema: activateInvoiceSchema },
+        (request, reply) => invoiceController.completeInvoice(request, reply)
+    );
+
+    // Overdue invoice
+    fastify.post(
+        "/overdue",
+        { schema: activateInvoiceSchema },
+        (request, reply) => invoiceController.overDueInvoice(request, reply)
+    );
+
     // Delete invoice
     fastify.delete(
-        "/:id",
+        "/:invoiceNo",
         { schema: deleteInvoiceSchema },
         (request, reply) => invoiceController.deleteInvoice(request, reply)
     );
