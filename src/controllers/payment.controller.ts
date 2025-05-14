@@ -73,7 +73,6 @@ export const createNewPaymentSchema = z.object({
 });
 
 export const createNewInvoicePaymentSchema = z.object({
-    paymentHash: z.string(),
     paymentDescription: z.string().optional(),
     receiver: z.string(),
     sender: z.string(),
@@ -89,7 +88,7 @@ export const createNewInvoicePaymentSchema = z.object({
         .optional(),
     serviceHash: z.string(),
     serviceId: z.string().optional(),
-    paymentDate: z.string().optional(),
+    paymentDate: z.string().datetime().optional(),
     paymentStatus: z
         .enum([
             PaymentStatus.FAILED,

@@ -66,6 +66,19 @@ export function getPaymentLogPDA(invoice: PublicKey, payer: PublicKey): [PublicK
     );
 }
 
+async function getPubkeyFromSerializedTx(
+    serializedTx: string
+): Promise<PublicKey> {
+    const txBuffer = Buffer.from(serializedTx, "base64");
+    const tx = Transaction.from(txBuffer);
+    const instruction = tx.instructions[0];
+    const issuerPubkey = instruction.keys[0].pubkey;
+    const invoiceIdLength = instruction.data.readUInt8(8);
+    const invoiceId = instruction.data.slice(9, 9 + invoiceIdLength).toString();
+    const [invoicePDA, _] = getInvoicePDA(issuerPubkey, invoiceId);
+    return Promise.resolve(invoicePDA); // Wrap in Promise
+}
+
 export function convertTransactionToBase58(transactionResponse: string): {
     base58Signature?: string;
     base58Transaction?: string;
@@ -296,7 +309,7 @@ export class SmartContractService {
     async depositToPool(user: string, mint: string, amount: string): Promise<TransactionResponse> {
         try {
             const userPubkey = new PublicKey(user);
-            const mintPubkey = new PublicKey(mint);
+            const mintPubkey = await getPubkeyFromSerializedTx(mint)
             if (!PublicKey.isOnCurve(userPubkey)) throw new Error("Invalid user address");
             if (!PublicKey.isOnCurve(mintPubkey)) throw new Error("Invalid mint address");
             const amountBN = new anchor.BN(amount);
@@ -346,7 +359,7 @@ export class SmartContractService {
     async withdrawFromPool(user: string, mint: string, amount: string): Promise<TransactionResponse> {
         try {
             const userPubkey = new PublicKey(user);
-            const mintPubkey = new PublicKey(mint);
+            const mintPubkey = await getPubkeyFromSerializedTx(mint)
             if (!PublicKey.isOnCurve(userPubkey)) throw new Error("Invalid user address");
             if (!PublicKey.isOnCurve(mintPubkey)) throw new Error("Invalid mint address");
             const amountBN = new anchor.BN(amount);
@@ -445,7 +458,8 @@ export class SmartContractService {
     async payInvoice(payer: string, invoice: string, amount: string, mint: string): Promise<TransactionResponse> {
         try {
             const payerPubkey = new PublicKey(payer);
-            const invoicePubkey = new PublicKey(invoice);
+            const invoicePubkey = await getPubkeyFromSerializedTx(invoice)
+            // const invoicePubkey = new PublicKey(invoice);
             const mintPubkey = new PublicKey(mint);
             if (!PublicKey.isOnCurve(payerPubkey)) throw new Error("Invalid payer address");
             if (!PublicKey.isOnCurve(invoicePubkey)) throw new Error("Invalid invoice address");
@@ -495,7 +509,7 @@ export class SmartContractService {
     async closeInvoice(issuer: string, invoice: string, mint: string): Promise<TransactionResponse> {
         try {
             const issuerPubkey = new PublicKey(issuer);
-            const invoicePubkey = new PublicKey(invoice);
+            const invoicePubkey = await getPubkeyFromSerializedTx(invoice)
             const mintPubkey = new PublicKey(mint);
             if (!PublicKey.isOnCurve(issuerPubkey)) throw new Error("Invalid issuer address");
             if (!PublicKey.isOnCurve(invoicePubkey)) throw new Error("Invalid invoice address");
@@ -531,7 +545,7 @@ export class SmartContractService {
      */
     async getPoolContributors(mint: string): Promise<ContributorInfo[]> {
         try {
-            const mintPubkey = new PublicKey(mint);
+            const mintPubkey = await getPubkeyFromSerializedTx(mint)
             if (!PublicKey.isOnCurve(mintPubkey)) throw new Error("Invalid mint address");
 
             const contributors = await program.account.contributorAccount.all([
@@ -554,7 +568,7 @@ export class SmartContractService {
     async getInvoicePayments(invoice: string): Promise<PaymentInfo[]> {
         try {
             console.log(invoice)
-            const invoicePubkey = new PublicKey(invoice);
+            const invoicePubkey = await getPubkeyFromSerializedTx(invoice)
             if (!PublicKey.isOnCurve(invoicePubkey)) throw new Error("Invalid invoice address");
 
             const payments = await program.account.paymentLog.all([

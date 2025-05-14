@@ -61,9 +61,7 @@ export class UserService {
 	async getAuthenticatedUser(request: FastifyRequest): Promise<User> {
 		try {
 			// Extract and verify the JWT token
-			console.log('...................................')
 			console.log(request.headers.authorization)
-			console.log('...................................')
 			const jwtUser = await request.jwtVerify<JwtUser>();
 
 			console.log(jwtUser)
@@ -156,15 +154,6 @@ export class UserService {
 				]
 			}
 		});
-
-		// return await this.userRepository.findOne({
-		// 	where: {
-		// 		$or: [
-		// 			{ address: addressOrUsername },
-		// 			{ username: addressOrUsername }
-		// 		]
-		// 	}
-		// });
 	}
 
 	/**

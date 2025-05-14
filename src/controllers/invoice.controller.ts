@@ -365,18 +365,16 @@ export class InvoiceController extends BaseController {
 
             const inv = await this.invoiceService.getInvoice(user._id.toString(), invoiceData.invoiceNo);
 
-            // const invoiceHash = await this.smartContractService.createInvoice(
-            //     user.address,
-            //     invoiceData.invoiceNo,
-            //     inv.totalAmount?.toString(),
-            //     inv.invoiceDescription || "",
-            //     inv.dueDate || "",
-            //     inv.invoiceMintAddress
-            // );
+            const invoiceHash = await this.smartContractService.closeInvoice(
+                user.address,
+                invoiceData.invoiceNo,
+                inv.invoiceMintAddress
+            );
 
             const invoice = await this.invoiceService.updateInvoice(inv.invoiceNo, user._id.toString(), {
                 invoiceNo: inv.invoiceNo,
-                invoiceStatus: InvoiceStatus.COMPLETED
+                invoiceStatus: InvoiceStatus.COMPLETED,
+                invoiceTxHash: invoiceHash.transaction
             });
 
             return this.sendSuccess(
