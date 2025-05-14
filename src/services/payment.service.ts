@@ -18,6 +18,7 @@ interface PaymentResponse {
     paymentStatus: string;
     totalAmount: string;
     serviceType: string;
+    serviceId: string;
     paymentDate: string;
     paymentSignature: string;
     mintAddress: string;
@@ -131,6 +132,7 @@ export class PaymentService {
                 paymentStatus: payment.paymentStatus || '',
                 totalAmount: payment.totalAmount || '',
                 serviceType: payment.serviceType || '',
+                serviceId: payment.serviceId || "",
                 paymentDate: payment.paymentDate || '',
                 paymentSignature: payment.paymentSignature || '',
                 mintAddress: payment.mintAddress || '',
@@ -175,6 +177,64 @@ export class PaymentService {
                             paymentStatus: payment.paymentStatus || '',
                             totalAmount: payment.totalAmount || '',
                             serviceType: payment.serviceType || '',
+                            serviceId: payment.serviceId || "",
+                            paymentDate: payment.paymentDate || '',
+                            paymentSignature: payment.paymentSignature || '',
+                            mintAddress: payment.mintAddress || '',
+                            createdAt: payment.createdAt?.toISOString?.() || '',
+                            updatedAt: payment.updatedAt?.toISOString?.() || '',
+                        };
+
+                        return response;
+                    } catch (err) {
+                        logger.warn(`Error parsing payment ${payment.paymentHash}:`, err);
+                        return null;
+                    }
+                })
+            );
+
+            // Filter out null responses
+            const filteredPayments = fetchedTxns.filter(
+                (tx): tx is PaymentResponse => tx !== null
+            );
+
+            return filteredPayments;
+        } catch (err) {
+            logger.error('Failed to fetch payments:', err);
+            throw new Error('Failed to fetch payments. Please check the address.');
+        }
+    }
+
+    async getPaymentForService(serviceType: string, serviceId: string): Promise<PaymentResponse[]> {
+        try {
+            const mongoRepo = this.paymentInventory.manager.getMongoRepository(Payment);
+            const allPayment = await mongoRepo.find({
+                where: {
+                    // @ts-ignore — bypass TypeScript check safely for MongoDB
+                    $and: [
+                        { serviceType: serviceType },
+                        { serviceId: serviceId }
+                    ]
+                }
+            });
+
+            const fetchedTxns = await Promise.all(
+                allPayment.map(async (payment) => {
+                    try {
+                        if (!payment) {
+                            throw new NotFoundError(`Payment not found`);
+                        }
+
+                        const response: PaymentResponse = {
+                            id: payment.id,
+                            paymentHash: payment.paymentHash || '',
+                            paymentDescription: payment.paymentDescription || '',
+                            receiver: payment.receiver?.toString() || '',
+                            sender: payment.sender || '',
+                            paymentStatus: payment.paymentStatus || '',
+                            totalAmount: payment.totalAmount || '',
+                            serviceType: payment.serviceType || '',
+                            serviceId: payment.serviceId || "",
                             paymentDate: payment.paymentDate || '',
                             paymentSignature: payment.paymentSignature || '',
                             mintAddress: payment.mintAddress || '',
@@ -234,6 +294,7 @@ export class PaymentService {
                 paymentStatus: payment.paymentStatus || '',
                 totalAmount: payment.totalAmount || '',
                 serviceType: payment.serviceType || '',
+                serviceId: payment.serviceId || "",
                 paymentDate: payment.paymentDate || '',
                 paymentSignature: payment.paymentSignature || '',
                 mintAddress: payment.mintAddress || '',

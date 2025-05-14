@@ -1,37 +1,31 @@
-import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    ManyToOne,
-} from "typeorm";
-
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches } from "class-validator";
+import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { IsString, IsOptional, IsNumber } from "class-validator";
 import { DecoratedEntity } from "./decorated.entity";
-import { Invoice } from "./Invoice";
 
 @Entity()
-export class Services extends DecoratedEntity{
+export class Services extends DecoratedEntity {
+  @Column({ type: "varchar", length: 255, nullable: true })
+  @IsOptional()
+  @IsString()
+  title!: string;
 
-    @Column({ length: 255, nullable: true,  type: "varchar"  })
-    @IsString()
-    title?: string;
+  @Column({ type: "text", nullable: true })
+  @IsOptional()
+  @IsString()
+  description!: string;
 
-    @Column({ length: 255, nullable: true,  type: "varchar"  })
-    @IsString()
-    description?: string;
+  @Column({ type: "int", default: 1 })
+  @IsNumber()
+  quantity!: number;
 
-    @Column({ length: 255, default: 0, nullable: true,  type: "int"  })
-    @IsOptional()
-    quantity?: Number;
+  @Column({ type: "varchar", length: 255, nullable: true })
+  @IsOptional()
+  image!: string;
 
-    @Column({ length: 255, nullable: true, type: "varchar" })
-	@IsOptional()
-	image?: string;
+  @Column({ type: "float", nullable: true })
+  @IsOptional()
+  unitPrice!: number;
 
-    @Column({ length: 255, default: '0.00', nullable: true,  type: "varchar"  })
-    @IsOptional()
-    unitPrice?: string;
-
-    @ManyToOne(() => Invoice, (inv) => inv.services, { onDelete: "CASCADE" })
-    invoice!: Invoice;
+  @Column({ type: "varchar", length: 255, nullable: false })
+  invoice!: string; // Stores Invoice ObjectId as string
 }

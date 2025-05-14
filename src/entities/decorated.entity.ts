@@ -1,7 +1,7 @@
 // Project: @app/entities/decorated.entity.ts
 // Description: This file defines the DecoratedEntity class, which is an abstract base class for entities in a TypeORM application. It includes common properties such as _id, createdAt, updatedAt, and softDeleted. The class uses decorators from TypeORM to define the entity structure and behavior.
 import { IsOptional } from "class-validator";
-
+import { ObjectId } from "mongodb";
 import {
 	BaseEntity,
 	Column,
@@ -18,7 +18,7 @@ import {
 export abstract class DecoratedEntity extends BaseEntity {
 	@PrimaryGeneratedColumn()
 	@ObjectIdColumn()
-	_id!: string;
+	_id!: ObjectId;
 
 	@Column({ type: 'int', length: 255, nullable: false })
 	id!: number;

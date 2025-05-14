@@ -10,20 +10,20 @@ import { DecoratedEntity } from "./decorated.entity";
 import { Invoice } from "./Invoice";
 
 @Entity()
-export class DiscountCodes extends DecoratedEntity{
+export class DiscountCodes extends DecoratedEntity {
 
-    @Column({ length: 255, nullable: true,  type: "varchar"  })
+    @Column({ length: 255, nullable: true, type: "varchar" })
     @IsString()
     discountCode?: string;
 
-    @Column({ length: 255, default: 0, nullable: true,  type: "int"  })
+    @Column({ length: 255, default: 0, nullable: true, type: "int" })
     @IsOptional()
     discountPercent?: Number;
 
-    @Column({ length: 255, default: 0, nullable: true,  type: "int"  })
+    @Column({ length: 255, default: 0, nullable: true, type: "int" })
     @IsOptional()
-    noOfUse?: string;
+    noOfUse?: number;
 
-    @ManyToOne(() => Invoice, (inv) => inv.discountCodes, { onDelete: "CASCADE" })
-    invoice!: Invoice;
+    @Column({ type: "varchar", length: 255, nullable: false })
+    invoice!: string; // Stores Invoice ObjectId as string
 }

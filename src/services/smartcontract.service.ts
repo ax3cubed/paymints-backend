@@ -12,7 +12,8 @@ import { PaymentApp } from "../anchors/target/types/payment_app";
 import { logger } from "../core/logger";
 import config from "@/config";
 import { getBase58Codec } from "@solana/kit";
-import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+// import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import bs58 from 'bs58'
 
 // Configuration
 const RPC_URL = config.primaryTokens.rpc_url;
@@ -64,6 +65,42 @@ export function getPaymentLogPDA(invoice: PublicKey, payer: PublicKey): [PublicK
         program.programId
     );
 }
+
+export function convertTransactionToBase58(transactionResponse: string): {
+    base58Signature?: string;
+    base58Transaction?: string;
+    solscanUrl?: string;
+  } {
+    try {
+      // Step 1: Decode Base64 to binary
+      const transactionBuffer = Buffer.from(transactionResponse, 'base64');
+  
+      // Step 2: Deserialize to a Transaction object
+      const transaction = Transaction.from(transactionBuffer);
+  
+      // Step 3: Check if the transaction is signed
+      const signaturePair = transaction.signatures[0];
+      if (signaturePair && signaturePair.signature) {
+        // Transaction is signed, extract the signature
+        const signature = signaturePair.signature;
+        const base58Signature = bs58.encode(signature);
+        const solscanUrl = `https://solscan.io/tx/${base58Signature}`;
+        return {
+          base58Signature,
+          solscanUrl,
+        };
+      } else {
+        // Transaction is unsigned, return the serialized transaction in Base58
+        const base58Transaction = bs58.encode(transactionBuffer);
+        return {
+          base58Transaction,
+        };
+      }
+    } catch (error) {
+      console.error('Error converting transaction:', error);
+      throw error;
+    }
+  }
 
 // Helper to get or create associated token account address
 async function getOrCreateATA(mint: PublicKey, owner: PublicKey, transaction: Transaction): Promise<PublicKey> {
@@ -516,6 +553,7 @@ export class SmartContractService {
      */
     async getInvoicePayments(invoice: string): Promise<PaymentInfo[]> {
         try {
+            console.log(invoice)
             const invoicePubkey = new PublicKey(invoice);
             if (!PublicKey.isOnCurve(invoicePubkey)) throw new Error("Invalid invoice address");
 

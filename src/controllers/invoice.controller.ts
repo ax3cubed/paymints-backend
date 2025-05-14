@@ -5,10 +5,14 @@ import { z } from "zod";
 import { InvoiceType, InvoiceStatus, InvoiceVisibility } from "../entities/Invoice";
 import { SmartContractService } from "@/services/smartcontract.service";
 import { generateInvoiceIdentifier } from "@/config/randomidentifier";
+import { logger } from "../core/logger";
+import { Services } from "@/entities/Services";
+import AppDataSource from "@/database";
+import { DiscountCodes } from "@/entities/Discount";
+import { PaymentService } from "@/services/payment.service";
 
-// Validation schemas (unchanged from previous implementation)
+// Validation schemas
 const createInvoiceSchema = z.object({
-
     invoiceType: z.enum([
         InvoiceType.INVOICE,
         InvoiceType.DONATION,
@@ -16,18 +20,19 @@ const createInvoiceSchema = z.object({
         InvoiceType.CUSTOM,
         InvoiceType.MILESTONE,
     ]),
-    invoiceTitle: z.string(),
-    invoiceImage: z.string().optional(),
+    invoiceTitle: z.string().min(1),
+    invoiceImage: z.string().url().optional(),
     invoiceDescription: z.string().optional(),
     invoiceStatus: z
         .enum([
             InvoiceStatus.DRAFT,
             InvoiceStatus.PROCESSING,
             InvoiceStatus.COMPLETED,
+            InvoiceStatus.OVERDUE
         ])
         .optional(),
     invoiceCategory: z.string().optional(),
-    invoiceMintAddress: z.string(),
+    invoiceMintAddress: z.string().min(1),
     clientName: z.string().optional(),
     clientWallet: z.string().optional(),
     clientEmail: z.string().email().optional(),
@@ -35,23 +40,40 @@ const createInvoiceSchema = z.object({
     isClientInformation: z.boolean().optional(),
     isExpirable: z.boolean().optional(),
     dueDate: z.string().optional(),
-    discountCodes: z.array(z.any()).optional(),
+    discountCodes: z
+        .array(
+            z.object({
+                discountCode: z.string().min(1),
+                discountPercent: z.string().regex(/^\d+$/, "Must be a valid percentage"),
+                noOfUse: z.number().int().nonnegative(),
+            })
+        )
+        .optional(),
     tipOptionEnabled: z.boolean().optional(),
     invoiceVisibility: z
         .enum([InvoiceVisibility.PRIVATE, InvoiceVisibility.PUBLIC])
         .optional(),
     autoEmailReceipt: z.boolean().optional(),
     QRcodeEnabled: z.boolean().optional(),
-    services: z.array(z.any()).optional(),
-    subtotal: z.number().optional(),
-    discount: z.number().optional(),
-    taxRate: z.number().optional(),
-    taxAmount: z.number().optional(),
-    totalAmount: z.number(),
+    services: z
+        .array(
+            z.object({
+                name: z.string().min(1),
+                description: z.string().min(1),
+                quantity: z.number().int().positive(),
+                price: z.number().positive(),
+            })
+        )
+        .optional(),
+    subtotal: z.number().nonnegative().optional(),
+    discount: z.number().nonnegative().optional(),
+    taxRate: z.number().nonnegative().optional(),
+    taxAmount: z.number().nonnegative().optional(),
+    totalAmount: z.number().positive(),
 });
 
 const updateInvoiceSchema = z.object({
-    invoiceNo: z.string(),
+    invoiceNo: z.string().min(1),
     invoiceType: z
         .enum([
             InvoiceType.INVOICE,
@@ -61,51 +83,58 @@ const updateInvoiceSchema = z.object({
             InvoiceType.MILESTONE,
         ])
         .optional(),
-    invoiceTitle: z.string().optional(),
-    invoiceImage: z.string().optional(),
+    invoiceTitle: z.string().min(1).optional(),
+    invoiceImage: z.string().url().optional(),
     invoiceDescription: z.string().optional(),
     invoiceStatus: z
         .enum([
             InvoiceStatus.DRAFT,
             InvoiceStatus.PROCESSING,
             InvoiceStatus.COMPLETED,
+            InvoiceStatus.OVERDUE
         ])
         .optional(),
     invoiceCategory: z.string().optional(),
-    invoiceMintAddress: z.string(),
+    invoiceMintAddress: z.string().optional(),
     clientName: z.string().optional(),
     clientWallet: z.string().optional(),
     clientEmail: z.string().email().optional(),
     clientAddress: z.string().optional(),
     isClientInformation: z.boolean().optional(),
     isExpirable: z.boolean().optional(),
-    dueDate: z.string().optional(),
+    dueDate: z.string().datetime().optional(),
     tipOptionEnabled: z.boolean().optional(),
     invoiceVisibility: z
         .enum([InvoiceVisibility.PRIVATE, InvoiceVisibility.PUBLIC])
         .optional(),
     autoEmailReceipt: z.boolean().optional(),
     QRcodeEnabled: z.boolean().optional(),
-    subtotal: z.number().optional(),
-    discount: z.number().optional(),
-    taxRate: z.number().optional(),
-    taxAmount: z.number().optional(),
-    totalAmount: z.number().optional(),
-    invoiceTxHash: z.string(),
+    discountCodes: z.array(z.string()).optional(),
+    services: z.array(z.string()).optional(),
+    subtotal: z.number().nonnegative().optional(),
+    discount: z.number().nonnegative().optional(),
+    taxRate: z.number().nonnegative().optional(),
+    taxAmount: z.number().nonnegative().optional(),
+    totalAmount: z.number().nonnegative().optional(),
+    invoiceTxHash: z.string().optional(),
 });
 
 const activateInvoiceSchema = z.object({
-    invoiceNo: z.string()
+    invoiceNo: z.string().min(1),
 });
 
 export class InvoiceController extends BaseController {
     private invoiceService: InvoiceService;
     private smartContractService: SmartContractService;
+    private paymentService: PaymentService;
+    private servicesRepository = AppDataSource.getRepository(Services);
+    private discountRepository = AppDataSource.getRepository(DiscountCodes);
 
     constructor() {
         super();
         this.invoiceService = new InvoiceService();
         this.smartContractService = new SmartContractService();
+        this.paymentService = new PaymentService();
     }
 
     /**
@@ -113,15 +142,60 @@ export class InvoiceController extends BaseController {
      */
     async createInvoice(request: FastifyRequest, reply: FastifyReply) {
         try {
+            console.log(request.body);
             const invoiceData = createInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
-            const invoiceId = generateInvoiceIdentifier()
+            const invoiceId = generateInvoiceIdentifier();
+            logger.info({ requestId: request.requestId, userId: user._id }, "Creating invoice");
 
+            const serviceIds: string[] = [];
+            if (invoiceData.services?.length) {
+                for (const item of invoiceData.services) {
+                    try {
+                        const newService = this.servicesRepository.create({
+                            title: item.name,
+                            description: item.description,
+                            quantity: item.quantity,
+                            unitPrice: item.price,
+                            invoice: invoiceId, 
+                        });
+
+                        const savedService = await this.servicesRepository.save(newService);
+                        serviceIds.push(savedService._id.toString());
+                    } catch (error) {
+                        logger.error({ err: error }, "Service Creation Failed");
+                        throw new Error("Failed to create Service");
+                    }
+                }
+            }
+
+            // Create DiscountCodes entities
+            const discountIds: string[] = [];
+            if (invoiceData.discountCodes?.length) {
+                for (const item of invoiceData.discountCodes) {
+                    try {
+                        const newDiscount = this.discountRepository.create({
+                            discountCode: item.discountCode,
+                            discountPercent: item.discountPercent,
+                            noOfUse: item.noOfUse,
+                            invoice: invoiceId, // Temporarily store invoiceNo
+                        });
+
+                        const savedDiscount = await this.discountRepository.save(newDiscount);
+                        discountIds.push(savedDiscount._id.toString());
+                    } catch (error) {
+                        logger.error({ err: error }, "Discount Code Creation Failed");
+                        throw new Error("Failed to create Discount Code");
+                    }
+                }
+            }
 
             const invoice = await this.invoiceService.createInvoice({
                 ...invoiceData,
                 invoiceNo: invoiceId,
-                createdBy: user
+                services: serviceIds,
+                discountCodes: discountIds,
+                createdBy: user._id.toString()
             });
 
             return this.sendSuccess(
@@ -141,28 +215,27 @@ export class InvoiceController extends BaseController {
     /**
      * Get invoice by ID
      */
-    async getInvoice(
-        request: FastifyRequest,
-        reply: FastifyReply
-    ) {
+    async getInvoice(request: FastifyRequest, reply: FastifyReply) {
         try {
-            //   const { invoiceNo } = request.params;
-            const { invoiceNo } = (request.params as { invoiceNo: string });
+            const { invoiceNo } = request.params as { invoiceNo: string };
             const user = await this.invoiceService.getAuthenticatedUser(request);
-            var invoicePayersFromSC;
+            logger.info({ requestId: request.requestId, userId: user._id, invoiceNo }, "Retrieving invoice");
 
-            const invoice = await this.invoiceService.getInvoice(user.id, invoiceNo);
+            const invoice = await this.invoiceService.getInvoice(user._id.toString(), invoiceNo);
+            // const invoicePayersFromSC = invoice.invoiceTxHash
+            //     ? await this.smartContractService.getInvoicePayments(invoice.invoiceTxHash)
+            //     : undefined;
 
-            if (!invoice) {
-                return this.sendError(reply, "Invoice not found", 404);
-            }
-
-            if (invoice.invoiceTxHash) invoicePayersFromSC = await this.smartContractService.getInvoicePayments(invoice.invoiceTxHash)
+            const invoicePayersFromSC = await this.paymentService.getPaymentForService('invoice', invoice.invoiceNo);
 
             const response = {
                 ...invoice,
-                invoicePays: invoicePayersFromSC
-            }
+                invoicePays: invoicePayersFromSC.map((p) => ({
+                    payer: p.sender,
+                    amount: p.totalAmount,
+                    timestamp: Number(p.createdAt),
+                })),
+            };
 
             return this.sendSuccess(
                 reply,
@@ -184,7 +257,9 @@ export class InvoiceController extends BaseController {
     async getUserInvoices(request: FastifyRequest, reply: FastifyReply) {
         try {
             const user = await this.invoiceService.getAuthenticatedUser(request);
-            const invoices = await this.invoiceService.getUserInvoices(user.id);
+            logger.info({ requestId: request.requestId, userId: user._id }, "Retrieving user invoices");
+
+            const invoices = await this.invoiceService.getUserInvoices(user._id.toString());
 
             return this.sendSuccess(
                 reply,
@@ -203,29 +278,27 @@ export class InvoiceController extends BaseController {
     /**
      * Update invoice
      */
-    async updateInvoice(
-        request: FastifyRequest,
-        reply: FastifyReply
-    ) {
+    async updateInvoice(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // const { id } = request.params;
-            const { id } = (request.params as { id: string });
+            const { invoiceNo } = request.params as { invoiceNo: string };
             const invoiceData = updateInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
+            logger.info({ requestId: request.requestId, userId: user._id, invoiceNo }, "Updating invoice");
 
             if (invoiceData.invoiceStatus === InvoiceStatus.COMPLETED) {
-                const invoiceHash = await this.smartContractService.closeInvoice(user.address, invoiceData.invoiceTxHash, invoiceData.invoiceMintAddress)
+                await this.smartContractService.closeInvoice(
+                    user.address,
+                    invoiceData.invoiceTxHash || "",
+                    invoiceData.invoiceMintAddress || ""
+                );
             }
 
             const newInvoiceData = {
-                ...invoiceData
-            }
+                ...invoiceData,
+                createdBy: user._id.toString(),
+            };
 
-            const invoice = await this.invoiceService.updateInvoice(invoiceData.invoiceNo, user.id, invoiceData);
-
-            if (!invoice) {
-                return this.sendError(reply, "Invoice not found", 404);
-            }
+            const invoice = await this.invoiceService.updateInvoice(invoiceNo, user._id.toString(), newInvoiceData);
 
             return this.sendSuccess(
                 reply,
@@ -241,43 +314,31 @@ export class InvoiceController extends BaseController {
         }
     }
 
-
-    async activateInvoice(
-        request: FastifyRequest,
-        reply: FastifyReply
-    ) {
+    /**
+     * Activate invoice
+     */
+    async activateInvoice(request: FastifyRequest, reply: FastifyReply) {
         try {
             const invoiceData = activateInvoiceSchema.parse(request.body);
             const user = await this.invoiceService.getAuthenticatedUser(request);
+            logger.info({ requestId: request.requestId, userId: user._id, invoiceNo: invoiceData.invoiceNo }, "Activating invoice");
 
-            const inv = await this.invoiceService.getInvoice(user.id, invoiceData.invoiceNo);
-
-            var invoiceHas;
-
-            if (!inv) {
-                return this.sendError(reply, "Invoice not found", 404);
-            }
+            const inv = await this.invoiceService.getInvoice(user._id.toString(), invoiceData.invoiceNo);
 
             const invoiceHash = await this.smartContractService.createInvoice(
                 user.address,
                 invoiceData.invoiceNo,
                 inv.totalAmount?.toString(),
-                inv.invoiceDescription || '',
-                inv.dueDate || '',
+                inv.invoiceDescription || "",
+                inv.dueDate || "",
                 inv.invoiceMintAddress
-            )
-            invoiceHas = invoiceHash;
+            );
 
-
-            const invoice = await this.invoiceService.updateInvoice(inv.invoiceNo, user.id, {
+            const invoice = await this.invoiceService.updateInvoice(inv.invoiceNo, user._id.toString(), {
                 invoiceNo: inv.invoiceNo,
                 invoiceStatus: InvoiceStatus.PROCESSING,
-                invoiceTxHash: invoiceHas?.transaction
+                invoiceTxHash: invoiceHash?.transaction || ""
             });
-
-            if (!invoice) {
-                return this.sendError(reply, "Invoice not found", 404);
-            }
 
             return this.sendSuccess(
                 reply,
@@ -296,20 +357,13 @@ export class InvoiceController extends BaseController {
     /**
      * Delete invoice
      */
-    async deleteInvoice(
-        request: FastifyRequest,
-        reply: FastifyReply
-    ) {
+    async deleteInvoice(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // const { id } = request.params;
-            const { invoiceNo } = (request.params as { invoiceNo: string });
+            const { invoiceNo } = request.params as { invoiceNo: string };
             const user = await this.invoiceService.getAuthenticatedUser(request);
+            logger.info({ requestId: request.requestId, userId: user._id, invoiceNo }, "Deleting invoice");
 
-            const success = await this.invoiceService.deleteInvoice(invoiceNo, user.id);
-
-            if (!success) {
-                return this.sendError(reply, "Invoice not found", 404);
-            }
+            await this.invoiceService.deleteInvoice(invoiceNo, user._id.toString());
 
             return this.sendSuccess(
                 reply,

@@ -53,6 +53,9 @@ export class Payment extends DecoratedEntity {
     serviceType?: ServiceType;
 
     @Column({ length: 255, nullable: true, type: "varchar" })
+    serviceId?: string;
+
+    @Column({ length: 255, nullable: true, type: "varchar" })
     @IsOptional()
     paymentDate?: string;
 

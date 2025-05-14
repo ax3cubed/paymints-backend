@@ -135,12 +135,12 @@ export const config: Config = {
 			{
 				symbol: "USDC",
 				mintAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-				imageUrl: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
+				imageUrl: "https://raw.githubusercontent.com/Ayphilip/appPics/refs/heads/main/usd-coin-usdc-logo.png",
 			},
 			{
 				symbol: "USDT",
 				mintAddress: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-				imageUrl: "https://cryptologos.cc/logos/tether-usdt-logo.png",
+				imageUrl: "https://raw.githubusercontent.com/Ayphilip/appPics/refs/heads/main/tether-usdt-logo.png",
 			},
 			{
 				symbol: "USD*",
@@ -151,7 +151,7 @@ export const config: Config = {
 			{
 				symbol: "PYUSD",
 				mintAddress: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
-				imageUrl: "https://cryptologos.cc/logos/paypal-usd-pyusd-logo.png",
+				imageUrl: "https://raw.githubusercontent.com/Ayphilip/appPics/refs/heads/main/paypal-usd-pyusd-logo.png",
 			},
 		],
 	},

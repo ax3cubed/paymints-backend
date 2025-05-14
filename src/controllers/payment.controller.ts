@@ -30,6 +30,7 @@ export const createPaymentSchema = z.object({
             ServiceType.PAYROLL
         ])
         .optional(),
+    serviceId: z.string().optional(),
     paymentDate: z.string().optional(),
     paymentStatus: z
         .enum([
@@ -58,6 +59,7 @@ export const createNewPaymentSchema = z.object({
             ServiceType.PAYROLL
         ])
         .optional(),
+    serviceId: z.string().optional(),
     paymentDate: z.string().optional(),
     paymentStatus: z
         .enum([
@@ -86,6 +88,7 @@ export const createNewInvoicePaymentSchema = z.object({
         ])
         .optional(),
     serviceHash: z.string(),
+    serviceId: z.string().optional(),
     paymentDate: z.string().optional(),
     paymentStatus: z
         .enum([
@@ -159,7 +162,7 @@ export class PaymentController extends BaseController {
             const user = await this.userService.getAuthenticatedUser(request);
             var txDetails;
 
-            if(paymentData.serviceType !== ServiceType.INVOICE){
+            if (paymentData.serviceType !== ServiceType.INVOICE) {
                 const transactionDetails = await this.smartContractService.payInvoice(
                     paymentData.sender,
                     paymentData.serviceHash,
@@ -168,7 +171,7 @@ export class PaymentController extends BaseController {
                 )
 
                 txDetails = transactionDetails;
-            }else{
+            } else {
                 const transactionDetails = await this.smartContractService.payInvoice(
                     paymentData.sender,
                     paymentData.serviceHash,

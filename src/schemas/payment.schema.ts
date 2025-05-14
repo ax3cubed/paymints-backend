@@ -115,6 +115,9 @@ export const createNewInvoicePaymentSchema = {
             serviceHash: {
                 type: "string"
             },
+            serviceId: {
+                type: "string"
+            },
             paymentDate: { type: "string", format: "date-time" },
             paymentStatus: {
                 type: "string",
@@ -209,6 +212,9 @@ export const createConcludedPaymentSchema = {
             serviceType: {
                 type: "string",
                 enum: ["standard", "invoice", "payroll", "DAO", "credit"],
+            },
+            serviceId: {
+                type: "string"
             },
             paymentDate: { type: "string", format: "date-time" },
             paymentStatus: {
@@ -324,6 +330,9 @@ export const getPaymentFromPaymentHashSchema = {
                                 paymentStatus: { type: "string" },
                                 totalAmount: { type: "string" },
                                 serviceType: { type: "string" },
+                                serviceId: {
+                                    type: "string"
+                                },
                                 paymentDate: { type: "string" },
                                 paymentSignature: { type: "string" },
                                 mintAddress: { type: "string" },
@@ -394,6 +403,9 @@ export const getPaymentForAddressSchema = {
                                     paymentStatus: { type: "string" },
                                     totalAmount: { type: "string" },
                                     serviceType: { type: "string" },
+                                    serviceId: {
+                                        type: "string"
+                                    },
                                     paymentDate: { type: "string" },
                                     paymentSignature: { type: "string" },
                                     mintAddress: { type: "string" },
@@ -474,6 +486,9 @@ export const updatePaymentSchema = {
                                 paymentDate: { type: "string", format: "date-time" },
                                 paymentStatus: { type: "string" },
                                 serviceType: { type: "string" },
+                                serviceId: {
+                                    type: "string"
+                                },
                                 paymentSignature: { type: "string" },
                                 mintAddress: { type: "string" },
                                 createdAt: { type: "string", format: "date-time" },
