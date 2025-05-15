@@ -21,12 +21,12 @@ export class TransactionController extends BaseController {
      */
     async getTransaction(request: FastifyRequest, reply: FastifyReply) {
         try {
-            console.log('--------------------------------------------')
-            const { address } = getTransactionSchema.parse(request.query);
-            console.log(address)
-            console.log('--------------------------------------------')
+             
+            const { address } = getTransactionSchema.parse(request.body);
+             
+            
             const transactions = await this.transactionService.getTransactions(address);
-            console.log('--------------------------------------------')
+             
 
 
             return this.sendSuccess(

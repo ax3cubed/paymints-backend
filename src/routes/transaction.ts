@@ -6,7 +6,7 @@ export async function txnRoutes(fastify: FastifyInstance) {
   const transactionController = new TransactionController(fastify)
 
   // Fetch Transaction
-  fastify.get("/transactions", { schema: getTransactionSchema }, (request, reply) => transactionController.getTransaction(request, reply))
+  fastify.post("/transactions", { schema: getTransactionSchema }, (request, reply) => transactionController.getTransaction(request, reply))
 
 }
 

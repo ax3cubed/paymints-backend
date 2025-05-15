@@ -2,7 +2,7 @@ export const getTransactionSchema = {
     tags: ["Transaction"],
     summary: "Fetch Transaction",
     description: "Fetch all Wallet Transaction",
-    querystring: {
+    body: {
       type: "object",
       required: ["address"],
       properties: {
@@ -62,4 +62,3 @@ export const getTransactionSchema = {
       },
     },
   };
-  

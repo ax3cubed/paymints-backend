@@ -1,15 +1,11 @@
-// import {
-//   Connection,
-//   ParsedInstruction,
-//   PublicKey,
-//   SystemProgram,
-//   TransactionError
-// } from '@solana/web3.js';
 import { NotFoundError } from '../core/errors';
 import { logger } from '../core/logger';
 import config from '@/config';
-import { address, createRpc, createSolanaRpcFromTransport, TransactionError, TransactionForFullMetaInnerInstructionsParsed } from '@solana/kit';
-import { a } from 'vitest/dist/chunks/suite.B2jumIFP';
+import { address, createSolanaRpcFromTransport, TransactionError } from '@solana/kit';
+import { PublicKey, SystemProgram } from '@solana/web3.js';
+// @ts-ignore
+import BN from 'bn.js';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 interface TransactionResponse {
   signature: string;
@@ -18,8 +14,22 @@ interface TransactionResponse {
   blockTime: number | null;
   sender: string | null;
   recipient: string | null;
-  amount: number | null;
+  amount: string | null; // changed from number | null
   tokenMint?: string | null;
+}
+
+// Helper to convert lamports (string) to SOL (string, up to 9 decimals, no trailing zeros)
+function lamportsToSolString(lamports: string): string {
+  const LAMPORTS_PER_SOL = 1_000_000_000n;
+  const lamportsBigInt = BigInt(lamports);
+  const solInt = lamportsBigInt / LAMPORTS_PER_SOL;
+  const solFrac = lamportsBigInt % LAMPORTS_PER_SOL;
+  if (solFrac === 0n) return solInt.toString();
+  // Pad fractional part to 9 digits
+  let fracStr = solFrac.toString().padStart(9, '0');
+  // Remove trailing zeros
+  fracStr = fracStr.replace(/0+$/, '');
+  return `${solInt.toString()}.${fracStr}`;
 }
 
 export class TransactionService {
@@ -39,95 +49,86 @@ export class TransactionService {
       }
 
       // Initialize connection
-      const rpcUrl = config.primaryTokens.rpc_url;
-      const rpcUrl2 = config.primaryTokens.newRpc;
-      console.log('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-      // console.log(`RPC: ${rpcUrl2}`)
       const addr = address(walletAddress)
-
-      // Get recent signatures
-      // const signatures = await connection.getSignaturesForAddress(publicKey);
       const conns = createSolanaRpcFromTransport(config.primaryTokens.transport)
       const signatures = conns.getSignaturesForAddress(addr)
-      console.log('--3-3-3--3-3-3-3-3-3--3-3-3-3--3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3')
       const allSignature = await signatures.send()
-      // console.log(allSignature)
-      console.log('--3-3-3--3-3-3-3-3-3--3-3-3-3--3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3-3')
 
       // Fetch and parse transactions
       const fetchedTxns = await Promise.all(
-        allSignature.map(async (sig) => {
+        allSignature.map(async (sig: any) => {
           try {
-            // const tx = await connection.getParsedTransaction(sig.signature, {
-            //   maxSupportedTransactionVersion: 0,
-            // });
-
             const txs = conns.getTransaction(sig.signature, {
               maxSupportedTransactionVersion: 0,
             })
-
             const tx = await txs.send()
-            console.log(tx);
-
             if (!tx) return null;
 
-            // Handle System Program transfers (SOL) and SPL Token transfers
             let sender: string | null = null;
             let recipient: string | null = null;
-            let amount: number | null = null;
+            let amount: string | null = null;
             let tokenMint: string | null = null;
 
-            const systemInstruction = tx?.transaction?.message?.instructions;
-            const systemInstruction2 = tx.transaction.message.accountKeys;
+            const instructions = tx?.transaction?.message?.instructions || [];
+            const accountKeys = tx?.transaction?.message?.accountKeys || [];
 
-            // console.log('/////////////////////////////////////////////////////////////////////////')
-            // console.log(systemInstruction)
-            // console.log('/////////////////////////////////////////////////////////////////////////')
-            // console.log(systemInstruction2)
+            for (const ix of instructions) {
+              const programId = typeof accountKeys[ix.programIdIndex] === 'string'
+                ? accountKeys[ix.programIdIndex]
+                : accountKeys[ix.programIdIndex]?.toString();
+              // System transfer (SOL)
+              if (programId === SystemProgram.programId.toBase58()) {
+                // System transfer: decode data
+                if (ix.data && ix.data.length >= 16 && ix.accounts.length >= 2) {
+                  sender = typeof accountKeys[ix.accounts[0]] === 'string'
+                    ? accountKeys[ix.accounts[0]]
+                    : accountKeys[ix.accounts[0]]?.toString();
+                  recipient = typeof accountKeys[ix.accounts[1]] === 'string'
+                    ? accountKeys[ix.accounts[1]]
+                    : accountKeys[ix.accounts[1]]?.toString();
+                  // lamports: bytes 4-11 (8 bytes LE)
+                  const dataBuf = Buffer.from(ix.data, 'base64');
+                  const lamports = new BN(dataBuf.slice(4, 12), 'le');
+                  amount = lamportsToSolString(lamports.toString()); // precise SOL string
+                  tokenMint = null;
+                  break;
+                }
+              }
+              // SPL Token transfer
+              if (programId === TOKEN_PROGRAM_ID.toBase58()) {
+                // SPL Token transfer: decode data
+                if (ix.data && ix.accounts.length >= 3) {
+                  const dataBuf = Buffer.from(ix.data, 'base64');
+                  // 1: transfer, 12: transferChecked
+                  const instructionType = dataBuf[0];
+                  if ((instructionType === 1 || instructionType === 12)) {
+                    // transfer: 1 byte (instruction) + 8 bytes (amount)
+                    sender = typeof accountKeys[ix.accounts[2]] === 'string'
+                      ? accountKeys[ix.accounts[2]]
+                      : accountKeys[ix.accounts[2]]?.toString();
+                    recipient = typeof accountKeys[ix.accounts[1]] === 'string'
+                      ? accountKeys[ix.accounts[1]]
+                      : accountKeys[ix.accounts[1]]?.toString();
+                    const mintIdx = ix.accounts[0];
+                    tokenMint = String(accountKeys[mintIdx]);
+                    const amountRaw = dataBuf.slice(1, 9);
+                    amount = new BN(amountRaw, 'le').toString(); // return as string
+                    break;
+                  }
+                }
+              }
+            }
 
-
-
-
-            // if (systemInstruction) {
-            //   sender = tx.transaction.message.accountKeys[0]?.pubkey?.toBase58() ?? null;
-            //   recipient = systemInstruction.parsed?.info?.destination ?? null;
-
-            //   const lamports = systemInstruction.parsed?.info?.lamports;
-            //   amount = lamports !== undefined && lamports !== null ? lamports / 1e9 : null; // Convert lamports to SOL
-            // }
-
-            // const tokenInstruction = tx.transaction.message.instructions.find(
-            //   (ix): ix is ParsedInstruction =>
-            //     'parsed' in ix &&
-            //     ix.program === 'spl-token' &&
-            //     (ix.parsed?.type === 'transfer' || ix.parsed?.type === 'transferChecked')
-            // );
-
-            // if (tokenInstruction) {
-            //   sender = tokenInstruction.parsed?.info?.authority ?? null;
-            //   recipient = tokenInstruction.parsed?.info?.destination ?? null;
-
-            //   const tokenAmount = tokenInstruction.parsed?.info?.amount;
-            //   amount = tokenAmount !== undefined && tokenAmount !== null
-            //     ? Number(tokenAmount) / 1e6 // Adjust decimals (example: USDC uses 6)
-            //     : null;
-            //   tokenMint = tokenInstruction.parsed?.info?.mint ?? null;
-            // }
-
-            // if (!systemInstruction) return null;
-
-            // return {
-            //   signature: sig.signature,
-            //   slot: sig.slot,
-            //   error: null,
-            //   blockTime: sig.blockTime,
-            //   sender,
-            //   recipient,
-            //   amount,
-            //   tokenMint: null
-            // };
-
-            return null
+            return {
+              signature: sig.signature,
+              slot: sig.slot,
+              error: tx.meta?.err || null,
+              blockTime: sig.blockTime,
+              sender: sender,
+              recipient: recipient,
+              amount: amount,
+              tokenMint: tokenMint,
+            } as TransactionResponse;
           } catch (err) {
             logger.warn(`Error parsing transaction ${sig.signature}:`, err);
             return null;
@@ -136,9 +137,8 @@ export class TransactionService {
       );
 
       // Filter out null transactions
-      // const filteredTxns = fetchedTxns.filter((tx): tx is TransactionResponse => tx !== null);
-      // console.log(filteredTxns[0])
-      return [];
+      const filteredTxns = fetchedTxns.filter((tx): tx is TransactionResponse => tx !== null);
+      return filteredTxns;
     } catch (err) {
       logger.error('Failed to fetch transactions:', err);
       throw new Error('Failed to fetch transactions. Please check the address.');

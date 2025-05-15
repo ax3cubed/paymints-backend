@@ -10,8 +10,10 @@ import { init, swapExactIn } from "@perena/numeraire-sdk";
 import { getSimulationComputeUnits } from "@solana-developers/helpers";
 import { rpcs } from "@/config";
 import { AnchorProvider, setProvider } from "@coral-xyz/anchor";
+import { get } from "env-var";
 
-const SOLANA_RPC = rpcs[1];
+const cluster = get("CLUSTER").default("1").asString();
+const SOLANA_RPC = get(rpcs[parseInt(cluster)]).default("https://api.devnet.solana.com").asString();
 const COMMITMENT: Commitment = "confirmed";
 
 export class SwapService {
