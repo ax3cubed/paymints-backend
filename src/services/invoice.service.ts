@@ -19,18 +19,7 @@ import { convertTransactionToBase58 } from "./smartcontract.service";
 import config from "@/config";
 
 // Define input types for services and discountCodes
-type ServiceInput = {
-  name: string;
-  description: string;
-  quantity: number;
-  price: number;
-};
 
-type DiscountCodeInput = {
-  discountCode: string;
-  discountPercent: string;
-  noOfUse: number;
-};
 
 export class InvoiceService {
   private invoiceRepository = AppDataSource.getRepository(Invoice);
@@ -196,7 +185,7 @@ export class InvoiceService {
           title: s.title,
           description: s.description,
           quantity: s.quantity,
-          unitPrice: s.unitPrice,
+          price: s.price,
           invoice: s.invoice,
         })),
         subtotal: invoice.subtotal || undefined,
