@@ -57,6 +57,7 @@ export const InvoiceResponseDTOSchema = z.object({
   ]),
   invoiceCategory: z.string().optional(),
   invoiceMintAddress: z.string().min(1),
+  currency: z.string(),
   clientName: z.string().optional(),
   clientWallet: z.string().optional(),
   clientEmail: z.string().email().optional(),
