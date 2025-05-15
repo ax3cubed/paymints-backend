@@ -16,6 +16,7 @@ import { DiscountCodes } from "@/entities/Discount";
 import { InvoiceResponseDTO, InvoiceResponseDTOSchema } from "@/DTO/InvoiceDTO";
 import { PublicKey } from "@solana/web3.js";
 import { convertTransactionToBase58 } from "./smartcontract.service";
+import config from "@/config";
 
 // Define input types for services and discountCodes
 type ServiceInput = {
@@ -83,6 +84,10 @@ export class InvoiceService {
       if (!user) {
         throw new NotFoundError("User", invoice.createdBy);
       }
+
+      const currency = config.primaryTokens.tokens.find((x) => x.mintAddress === invoice.invoiceMintAddress)?.symbol || "USDC";
+
+
 
       // Validate and prepare services and discount codes IDs
     const serviceIds = invoice.services?.length ? invoice.services : [];
@@ -167,6 +172,7 @@ export class InvoiceService {
         invoiceStatus: invoice.invoiceStatus,
         invoiceCategory: invoice.invoiceCategory || undefined,
         invoiceMintAddress: invoice.invoiceMintAddress,
+        currency: currency,
         clientName: invoice.clientName || undefined,
         clientWallet: invoice.clientWallet || undefined,
         clientEmail: invoice.clientEmail || undefined,
