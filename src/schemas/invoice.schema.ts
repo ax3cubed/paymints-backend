@@ -71,6 +71,7 @@ const UserDTOSchema = {
       },
       invoiceCategory: { type: "string", nullable: true },
       invoiceMintAddress: { type: "string", minLength: 1 },
+      currency: {type: "string"},
       clientName: { type: "string", nullable: true },
       clientWallet: { type: "string", nullable: true },
       clientEmail: { type: "string", format: "email", nullable: true },
@@ -113,9 +114,9 @@ const UserDTOSchema = {
   // Common schemas
 const ServiceInputSchema = {
     type: "object",
-    required: ["name", "description", "quantity", "price"],
+    required: ["title", "description", "quantity", "price"],
     properties: {
-      name: { type: "string", minLength: 1 },
+      title: { type: "string", minLength: 1 },
       description: { type: "string", minLength: 1 },
       quantity: { type: "integer", minimum: 1 },
       price: { type: "number", exclusiveMinimum: 0 },
@@ -192,6 +193,7 @@ const ServiceInputSchema = {
         invoiceDescription: { type: "string", nullable: true },
         invoiceCategory: { type: "string", nullable: true },
         invoiceMintAddress: { type: "string", minLength: 1 },
+        currency: {type: "string"},
         clientName: { type: "string", nullable: true },
         clientWallet: { type: "string", nullable: true },
         clientEmail: { type: "string", format: "email", nullable: true },
@@ -346,6 +348,7 @@ const ServiceInputSchema = {
         },
         invoiceCategory: { type: "string", nullable: true },
         invoiceMintAddress: { type: "string", nullable: true },
+        currency: {type: "string"},
         clientName: { type: "string", nullable: true },
         clientWallet: { type: "string", nullable: true },
         clientEmail: { type: "string", format: "email", nullable: true },

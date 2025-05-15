@@ -33,6 +33,7 @@ const createInvoiceSchema = z.object({
         .optional(),
     invoiceCategory: z.string().optional(),
     invoiceMintAddress: z.string().min(1),
+    currency: z.string(),
     clientName: z.string().optional(),
     clientWallet: z.string().optional(),
     clientEmail: z.string().email().optional(),
@@ -58,7 +59,7 @@ const createInvoiceSchema = z.object({
     services: z
         .array(
             z.object({
-                name: z.string().min(1),
+                title: z.string().min(1),
                 description: z.string().min(1),
                 quantity: z.number().int().positive(),
                 price: z.number().positive(),
@@ -96,6 +97,7 @@ const updateInvoiceSchema = z.object({
         .optional(),
     invoiceCategory: z.string().optional(),
     invoiceMintAddress: z.string().optional(),
+    currency: z.string(),
     clientName: z.string().optional(),
     clientWallet: z.string().optional(),
     clientEmail: z.string().email().optional(),
@@ -153,7 +155,7 @@ export class InvoiceController extends BaseController {
                 for (const item of invoiceData.services) {
                     try {
                         const newService = this.servicesRepository.create({
-                            title: item.name,
+                            title: item.title,
                             description: item.description,
                             quantity: item.quantity,
                             unitPrice: item.price,

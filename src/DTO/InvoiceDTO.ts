@@ -16,7 +16,7 @@ const ServicesDTOSchema = z.object({
   title: z.string().min(1), // Maps to `name` in input
   description: z.string().min(1),
   quantity: z.number().int().positive(),
-  unitPrice: z.number().positive(), // Maps to `price` in input
+  price: z.number().positive(), // Maps to `price` in input
   invoice: z.string().min(1), // Invoice ObjectId string
 });
 
@@ -57,6 +57,7 @@ export const InvoiceResponseDTOSchema = z.object({
   ]),
   invoiceCategory: z.string().optional(),
   invoiceMintAddress: z.string().min(1),
+  currency: z.string(),
   clientName: z.string().optional(),
   clientWallet: z.string().optional(),
   clientEmail: z.string().email().optional(),
