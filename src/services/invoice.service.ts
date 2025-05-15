@@ -185,7 +185,7 @@ export class InvoiceService {
           title: s.title,
           description: s.description,
           quantity: s.quantity,
-          price: s.price,
+          unitPrice: s.unitPrice,
           invoice: s.invoice,
         })),
         subtotal: invoice.subtotal || undefined,

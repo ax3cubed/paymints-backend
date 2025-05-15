@@ -16,7 +16,7 @@ const ServicesDTOSchema = z.object({
   title: z.string().min(1), // Maps to `name` in input
   description: z.string().min(1),
   quantity: z.number().int().positive(),
-  price: z.number().positive(), // Maps to `price` in input
+  unitPrice: z.number().positive(), // Maps to `price` in input
   invoice: z.string().min(1), // Invoice ObjectId string
 });
 
