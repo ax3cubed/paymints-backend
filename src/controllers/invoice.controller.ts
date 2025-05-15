@@ -62,7 +62,7 @@ const createInvoiceSchema = z.object({
                 title: z.string().min(1),
                 description: z.string().min(1),
                 quantity: z.number().int().positive(),
-                price: z.number().positive(),
+                unitPrice: z.number().positive(),
             })
         )
         .optional(),
@@ -158,7 +158,7 @@ export class InvoiceController extends BaseController {
                             title: item.title,
                             description: item.description,
                             quantity: item.quantity,
-                            unitPrice: item.price,
+                            unitPrice: item.unitPrice,
                             invoice: invoiceId, 
                         });
 

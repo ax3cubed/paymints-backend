@@ -114,12 +114,12 @@ const UserDTOSchema = {
   // Common schemas
 const ServiceInputSchema = {
     type: "object",
-    required: ["title", "description", "quantity", "price"],
+    required: ["title", "description", "quantity", "unitPrice"],
     properties: {
       title: { type: "string", minLength: 1 },
       description: { type: "string", minLength: 1 },
       quantity: { type: "integer", minimum: 1 },
-      price: { type: "number", exclusiveMinimum: 0 },
+      unitPrice: { type: "number", exclusiveMinimum: 0 },
     },
   };
   
