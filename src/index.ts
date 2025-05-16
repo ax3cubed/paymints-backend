@@ -59,7 +59,8 @@ server.addHook("onRequest", async (request, reply) => {
 		// Skip authentication for auth routes, health check, and swagger documentation
 		if (
 			request.url &&
-			(request.url.startsWith(`${config.app.apiPrefix}/auth`) ||
+			(request.url.startsWith(`/`) ||
+				request.url.startsWith(`${config.app.apiPrefix}/auth`) ||
 				request.url === `${config.app.apiPrefix}/health` ||
 				request.url.startsWith(`${config.app.apiPrefix}/txn`) ||
 				isSwaggerRoute(request.url))
@@ -151,6 +152,31 @@ server.get(
 			{ status: "ok", timestamp: new Date().toISOString() },
 			"API is healthy"
 		);
+	}
+);
+
+// Root endpoint with Swagger documentation
+server.get(
+	"/",
+	{
+		schema: {
+			tags: ["Root"],
+			summary: "API Welcome",
+			description: "Welcome message for Paymints API root endpoint",
+			response: {
+				200: {
+					description: "Welcome message",
+					type: "object",
+					properties: {
+						success: { type: "boolean" },
+						message: { type: "string" },
+					},
+				},
+			},
+		},
+	},
+	async (request, reply) => {
+		return ResponseHandler.success(reply, undefined, "Welcome to Paymints API");
 	}
 );
 
