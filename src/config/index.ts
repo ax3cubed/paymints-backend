@@ -82,7 +82,7 @@ interface Config {
 export const config: Config = {
 	app: {
 		name: get("APP_NAME").default("Payment API").asString(),
-		port: get("SERVER_PORT").default("3000").asPortNumber(),
+		port: get("PORT").default("3000").asPortNumber(),
 		host: get("SERVER_HOST").default("0.0.0.0").asString(),
 		environment: get("NODE_ENV").default("development").asString(),
 		apiPrefix: get("API_PREFIX").default("/api").asString(),
