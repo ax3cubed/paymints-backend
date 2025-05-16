@@ -14,6 +14,11 @@ import config from "@/config";
 import { getBase58Codec } from "@solana/kit";
 // import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import bs58 from 'bs58'
+import {
+    Keypair,
+    TransactionInstruction,
+    sendAndConfirmTransaction
+} from "@solana/web3.js";
 
 // Configuration
 const RPC_URL = config.primaryTokens.rpc_url;
@@ -27,6 +32,61 @@ const provider = {
 // Initialize the program
 const idl = require("../anchors/target/idl/payment_app.json");
 const program = new Program<PaymentApp>(idl, provider);
+
+
+
+
+
+export async function initializeProgramId(): Promise<{ status: boolean }> {
+    const programId = new PublicKey("6wTCGSEy4Sx9KkEbEiygxGiryPkBt9rhon77D8bRhCgf");
+    const programInfo = await connection.getAccountInfo(programId);
+    if (!programInfo) {
+        try {
+
+            const payer = Keypair.fromSecretKey(Uint8Array.from([191,189,90,190,48,183,115,67,122,250,68,211,89,16,37,72,87,10,199,240,18,45,102,106,106,130,154,137,4,229,25,172,86,212,255,100,239,107,74,31,157,114,101,214,12,113,190,253,98,227,236,70,13,65,226,237,75,171,25,147,244,68,48,53]));
+            const newAccount = Keypair.generate();
+
+            const space = 64; // bytes
+            const lamports = await connection.getMinimumBalanceForRentExemption(space);
+    
+            // 2. Create account
+            const createAccountIx = SystemProgram.createAccount({
+                fromPubkey: payer.publicKey,
+                newAccountPubkey: newAccount.publicKey,
+                space,
+                lamports,
+                programId,
+            });
+    
+    
+    
+            // 3. Optionally: call program to initialize
+            const initializeIx = new TransactionInstruction({
+                keys: [
+                    { pubkey: newAccount.publicKey, isSigner: false, isWritable: true },
+                    { pubkey: payer.publicKey, isSigner: true, isWritable: false },
+                ],
+                programId,
+                data: Buffer.from([]), // encode your instruction here
+            });
+            const tx = new Transaction().add(createAccountIx, initializeIx);
+            await sendAndConfirmTransaction(connection, tx, [payer, newAccount]);
+            return {
+                status: true
+            };
+        } catch (error) {
+            console.log(error)
+            return {
+                status: false
+            };
+        }
+    }else{
+        return {
+            status: true
+        }
+    }
+    
+}
 
 // PDA Helper Functions
 export function getVestingAccountPDA(employer: PublicKey, employee: PublicKey, vestingId: Buffer = Buffer.from("")): [PublicKey, number] {
@@ -83,37 +143,37 @@ export function convertTransactionToBase58(transactionResponse: string): {
     base58Signature?: string;
     base58Transaction?: string;
     solscanUrl?: string;
-  } {
+} {
     try {
-      // Step 1: Decode Base64 to binary
-      const transactionBuffer = Buffer.from(transactionResponse, 'base64');
-  
-      // Step 2: Deserialize to a Transaction object
-      const transaction = Transaction.from(transactionBuffer);
-  
-      // Step 3: Check if the transaction is signed
-      const signaturePair = transaction.signatures[0];
-      if (signaturePair && signaturePair.signature) {
-        // Transaction is signed, extract the signature
-        const signature = signaturePair.signature;
-        const base58Signature = bs58.encode(signature);
-        const solscanUrl = `https://solscan.io/tx/${base58Signature}`;
-        return {
-          base58Signature,
-          solscanUrl,
-        };
-      } else {
-        // Transaction is unsigned, return the serialized transaction in Base58
-        const base58Transaction = bs58.encode(transactionBuffer);
-        return {
-          base58Transaction,
-        };
-      }
+        // Step 1: Decode Base64 to binary
+        const transactionBuffer = Buffer.from(transactionResponse, 'base64');
+
+        // Step 2: Deserialize to a Transaction object
+        const transaction = Transaction.from(transactionBuffer);
+
+        // Step 3: Check if the transaction is signed
+        const signaturePair = transaction.signatures[0];
+        if (signaturePair && signaturePair.signature) {
+            // Transaction is signed, extract the signature
+            const signature = signaturePair.signature;
+            const base58Signature = bs58.encode(signature);
+            const solscanUrl = `https://solscan.io/tx/${base58Signature}`;
+            return {
+                base58Signature,
+                solscanUrl,
+            };
+        } else {
+            // Transaction is unsigned, return the serialized transaction in Base58
+            const base58Transaction = bs58.encode(transactionBuffer);
+            return {
+                base58Transaction,
+            };
+        }
     } catch (error) {
-      console.error('Error converting transaction:', error);
-      throw error;
+        console.error('Error converting transaction:', error);
+        throw error;
     }
-  }
+}
 
 // Helper to get or create associated token account address
 async function getOrCreateATA(mint: PublicKey, owner: PublicKey, transaction: Transaction): Promise<PublicKey> {
@@ -419,7 +479,7 @@ export class SmartContractService {
             if (description.length > 256) throw new Error("Description must be 256 characters or less");
             const amountBN = new anchor.BN(amount);
             if (amountBN.lte(new anchor.BN(0))) throw new Error("Amount must be positive");
-            const date = new Date(deadline);
+            const date = new Date(deadline ? deadline : '2030-12-31');
             const millis = date.getTime();
             const deadlineBN = new anchor.BN(millis);
             if (deadlineBN.lte(new anchor.BN(Math.floor(Date.now() / 1000)))) {

@@ -9,6 +9,7 @@ import { Services } from "@/entities/Services";
 import { Recipient } from "@/entities/Recipient";
 import { Payroll } from "@/entities/Payroll";
 import { Payment } from "@/entities/Payment";
+import { initializeProgramId } from "@/services/smartcontract.service";
 
 export const AppDataSource = new DataSource({
 	type: config.database.type as any,
@@ -39,6 +40,21 @@ export const initializeDatabase = async (): Promise<void> => {
 				`Database connection established to ${config.database.database}`
 			);
 		}
+
+
+		const initializeResponse = await initializeProgramId();
+		if (initializeResponse.status) {
+			logger.info(
+				`Program Initialization Done Successfully`
+			);
+		} else {
+			logger.info(
+				`Program Initialization Failed`
+			);
+		}
+
+
+
 
 		if (config.app.environment === "development" && AppDataSource.isInitialized) {
 			const { seedDatabase } = await import("../seed");
